@@ -15,6 +15,7 @@ object Platform {
   def from(proxy: PlatformProxy): Platform = proxy match {
     case PlatformProxy.Scala => Scala
     case PlatformProxy.Dotty => Dotty
+    case PlatformProxy.Hydra => Hydra
   }
 
   val Values = Array(Scala, Dotty)
@@ -22,6 +23,8 @@ object Platform {
   final object Scala extends Platform("Scala", PlatformProxy.Scala)
 
   final object Dotty extends Platform("Dotty", PlatformProxy.Dotty)
+
+  final object Hydra extends Platform("Hydra", PlatformProxy.Hydra)
 
   implicit val ordering: Ordering[Platform] = new Ordering[Platform] {
     override def compare(x: Platform, y: Platform): Int =

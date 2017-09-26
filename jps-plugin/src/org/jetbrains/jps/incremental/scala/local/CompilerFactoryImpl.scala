@@ -65,8 +65,7 @@ object CompilerFactoryImpl {
 
   def createScalaInstance(jars: CompilerJars): ScalaInstance = {
     scalaInstanceCache.getOrUpdate(jars) {
-
-      val paths = jars.library +: jars.compiler +: jars.extra
+      val paths = jars.library +: jars.compiler +: new File("C:\\Users\\Maris\\.ivy2\\cache\\com.triplequote\\hydra_2.11.8\\jars\\hydra_2.11.8.jar") +: jars.extra.filterNot(_.getName.contains("hydra_2.11.8-0.9.3.jar"))
 
       def createClassLoader() = {
         val urls = Path.toURLs(paths)
@@ -81,7 +80,7 @@ object CompilerFactoryImpl {
 
       val version = readScalaVersionIn(classLoader)
 
-      new ScalaInstance(version.getOrElse("unknown"), classLoader, jars.library, jars.compiler, jars.extra.toArray, version)
+      new ScalaInstance(version.getOrElse("unknown"), classLoader, jars.library, jars.compiler, new File("C:\\Users\\Maris\\.ivy2\\cache\\com.triplequote\\hydra_2.11.8\\jars\\hydra_2.11.8.jar") +: jars.extra.filterNot(_.getName.contains("hydra_2.11.8-0.9.3.jar")).toArray, version)
     }
 
   }
@@ -97,9 +96,9 @@ object CompilerFactoryImpl {
                                client: Option[Client]): File = {
 
     val scalaVersion = scalaInstance.actualVersion
-    val sourceJar =
-      if (isBefore_2_11(scalaVersion)) sourceJars._2_10
-      else sourceJars._2_11
+    val sourceJar = if(scalaVersion.contains("hydra")) new File("C:\\Users\\Maris\\.ivy2\\cache\\com.triplequote\\hydra-bridge\\srcs\\hydra-bridge_1_0-sources.jar")
+                    else if (isBefore_2_11(scalaVersion)) sourceJars._2_10
+                    else sourceJars._2_11
 
     val interfaceId = "compiler-interface-" + scalaVersion + "-" + javaClassVersion
     val targetJar = new File(home, interfaceId + ".jar")

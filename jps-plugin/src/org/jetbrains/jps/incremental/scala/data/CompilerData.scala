@@ -38,8 +38,15 @@ object CompilerData {
 
     compilerJars.flatMap { jars =>
       val incrementalityType = SettingsManager.getProjectSettings(project.getProject).getIncrementalityType
-      javaHome(context, module).map(CompilerData(jars, _, incrementalityType))
+      if(SettingsManager.getHydraSettings(project.getProject).isHydraEnabled) {
+        val hydraData = HydraData(project.getProject)
+        val hydraJars = Some(new CompilerJars(jars.get.library, hydraData.getCompilerJar().getOrElse(jars.get.compiler), hydraData.otherFiles()))
+        javaHome(context, module).map(CompilerData(hydraJars, _, incrementalityType))
+      } else {
+        javaHome(context, module).map(CompilerData(jars, _, incrementalityType))
+      }
     }
+
   }
 
   def javaHome(context: CompileContext, module: JpsModule): Either[String, Option[File]] = {

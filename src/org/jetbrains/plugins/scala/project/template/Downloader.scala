@@ -4,6 +4,8 @@ import java.io.{File, FileNotFoundException}
 
 import com.intellij.execution.process.{OSProcessHandler, ProcessAdapter, ProcessEvent}
 import com.intellij.openapi.util.Key
+import org.jetbrains.plugins.scala.caches.HydraArtifactsCache
+import org.jetbrains.plugins.scala.compiler.HydraCredentialsManager
 import org.jetbrains.plugins.scala.project.Platform
 
 /**
@@ -61,6 +63,14 @@ object Downloader {
     case Platform.Dotty => Seq(
       s"""set libraryDependencies := Seq("ch.epfl.lamp" % "dotty_2.11" % "$version" % "scala-tool")""",
       "updateClassifiers")
+
+    case Platform.Hydra => Seq(
+      s"""set scalaVersion := "$version"""",
+      s"""set credentials := Seq(Credentials("Artifactory Realm", "repo.triplequote.com", "${HydraCredentialsManager.getLogin}", "${HydraCredentialsManager.getPlainPassword}"))""",
+      s"""set resolvers := Seq(Resolver.url("Triplequote Plugins Ivy Releases", url("https://repo.triplequote.com/artifactory/ivy-releases/"))(Resolver.ivyStylePatterns), Resolver.url("Triplequote sbt-plugin-relseases", url("https://repo.triplequote.com/artifactory/sbt-plugins-snapshot/"))(Resolver.ivyStylePatterns),  "Triplequote Plugins Releases" at "https://repo.triplequote.com/artifactory/libs-release-local/")""",
+      s"""set libraryDependencies := Seq("com.triplequote" % "hydra_${version}" % "0.9.3", ("com.triplequote" % "hydra-bridge" % "0.9.4-SNAPSHOT").sources())""",
+      "updateClassifiers",
+      "show dependencyClasspath")
   }
 }
 

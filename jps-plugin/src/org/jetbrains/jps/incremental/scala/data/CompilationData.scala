@@ -77,11 +77,16 @@ object CompilationData {
 
       val canonicalSources = sources.map(_.getCanonicalFile)
 
+      val sourcePathOption = if(SettingsManager.getHydraSettings(context.getProjectDescriptor.getProject).isHydraEnabled)
+                              Seq("-sourcepath", outputGroups.map(_._1).mkString(File.pathSeparator))
+                              else
+                              Seq.empty
+
       val isCompile =
         !JavaBuilderUtil.isCompileJavaIncrementally(context) &&
           !JavaBuilderUtil.isForcedRecompilationAllJavaModules(context)
 
-      CompilationData(canonicalSources, classpath, output, commonOptions ++ scalaOptions, commonOptions ++ javaOptions,
+      CompilationData(canonicalSources, classpath, output, commonOptions ++ scalaOptions ++ sourcePathOption, commonOptions ++ javaOptions,
         order, cacheFile, relevantOutputToCacheMap, outputGroups,
         ZincData(allSources, compilationStamp, isCompile))
     }
