@@ -27,7 +27,6 @@ class HydraCompilerConfigurable (project: Project, settings: HydraCompilerSettin
   override def apply() {
     BuildManager.getInstance().clearState(project)
     settings.isHydraEnabled = form.isHydraEnabled
-    settings.hydraVersion = "0.9.4"
     HydraCredentialsManager.setLogin(form.getUsername)
     HydraCredentialsManager.setPlainPassword(form.getPassword)
   }

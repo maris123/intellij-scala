@@ -19,33 +19,36 @@ import scala.util.Failure
 class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraCompilerSettings) extends HydraCompilerConfigurationPanel {
   private val UNKNOWN_VERSION = "unknown"
 
-  {
-    val documentAdapter = new DocumentAdapter {
-      override def textChanged(documentEvent: DocumentEvent): Unit = if (!getUsername.isEmpty && !getPassword.isEmpty) downloadButton.setEnabled(true)
-                                                                    else downloadButton.setEnabled(false)
-    }
-    val focusListener = new FocusListener {
-      override def focusGained(e: FocusEvent) = {}
-
-      override def focusLost(e: FocusEvent) = if (!getUsername.isEmpty && !getPassword.isEmpty) {
-        HydraCredentialsManager.setLogin(getUsername)
-        HydraCredentialsManager.setPlainPassword(getPassword)
-        myVersion.setItems(Versions.loadScalaVersions(Platform.Hydra))
-      }
+  val documentAdapter = new DocumentAdapter {
+      override def textChanged(documentEvent: DocumentEvent): Unit =
+        if (!getUsername.isEmpty && !getPassword.isEmpty) downloadButton.setEnabled(true)
+        else downloadButton.setEnabled(false)
     }
 
-    myTextField1.addFocusListener(focusListener)
-    myTextField1.getDocument.addDocumentListener(documentAdapter)
-    myPasswordField1.getDocument.addDocumentListener(documentAdapter)
-    myPasswordField1.addFocusListener(focusListener)
-    myVersion.setItems(Versions.loadScalaVersions(Platform.Hydra))
-    downloadButton.addActionListener((_: ActionEvent) => onDownload())
+  val focusListener = new FocusListener {
+    override def focusGained(e: FocusEvent) = {}
+
+    override def focusLost(e: FocusEvent) = if (!getUsername.isEmpty && !getPassword.isEmpty) {
+      HydraCredentialsManager.setLogin(getUsername)
+      HydraCredentialsManager.setPlainPassword(getPassword)
+      myVersion.setItems(Versions.loadScalaVersions(Platform.Hydra))
+    }
   }
+
+  myTextField1.addFocusListener(focusListener)
+  myTextField1.getDocument.addDocumentListener(documentAdapter)
+  myPasswordField1.getDocument.addDocumentListener(documentAdapter)
+  myPasswordField1.addFocusListener(focusListener)
+  myVersion.setItems(Versions.loadScalaVersions(Platform.Hydra))
+  downloadButton.addActionListener((_: ActionEvent) => onDownload())
+
+  def selectedVersion: String = myVersion.getSelectedItem.asInstanceOf[String]
 
   def onDownload() = {
     HydraCredentialsManager.setLogin(getUsername)
     HydraCredentialsManager.setPlainPassword(getPassword)
-    downloadVersionWithProgress(project.scalaModules.map(module => module.sdk.compilerVersion.getOrElse(UNKNOWN_VERSION)), "0.9.4")
+    downloadVersionWithProgress(project.scalaModules.map(module => module.sdk.compilerVersion.getOrElse(UNKNOWN_VERSION)), selectedVersion)
+    settings.hydraVersion = selectedVersion
   }
 
   private def downloadVersionWithProgress(scalaVersions: Seq[String], hydraVersion: String): Unit = {
@@ -55,6 +58,7 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
       case Failure(exception) => {
         Messages.showErrorDialog(myContentPanel, exception.getMessage, s"Error Downloading Hydra $hydraVersion for ${filteredScalaVersions.mkString(", ")}")
       }
+      case _ =>
     }
   }
 
