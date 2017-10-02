@@ -40,6 +40,12 @@ object HydraCredentialsManager {
 
   def setPlainPassword(password: String) = storeSecure(HYDRA_PASSWORD_KEY, password)
 
+  def getBasicAuthEncoding(): String = {
+    new String(encode(s"${getLogin}:${getPlainPassword}"))
+  }
+
+  private def encode(password: String) = Base64.getEncoder.encodeToString(password.getBytes(StandardCharsets.UTF_8))
+
   private def getSecure(key: String): Option[String] = try {
     MY_HYDRA_CREDENTIALS.synchronized {
       Some(MY_HYDRA_CREDENTIALS.getProperty(key, ""))

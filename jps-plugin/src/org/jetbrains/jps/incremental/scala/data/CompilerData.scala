@@ -38,9 +38,10 @@ object CompilerData {
 
     compilerJars.flatMap { jars =>
       val incrementalityType = SettingsManager.getProjectSettings(project.getProject).getIncrementalityType
-      if(SettingsManager.getHydraSettings(project.getProject).isHydraEnabled) {
+      if(SettingsManager.getHydraSettings(project.getProject).isHydraEnabled && SettingsManager.getHydraSettings(project.getProject).getArtifactPaths.containsKey(version(jars.get.compiler).getOrElse("UNKNOWN"))) {
+        val scalaVersion = version(jars.get.compiler)
         val hydraData = HydraData(project.getProject)
-        val hydraJars = Some(new CompilerJars(jars.get.library, hydraData.getCompilerJar().getOrElse(jars.get.compiler), hydraData.otherFiles()))
+        val hydraJars = Some(new CompilerJars(jars.get.library, hydraData.getCompilerJar(scalaVersion.get).getOrElse(jars.get.compiler), hydraData.otherFiles(scalaVersion.get)))
         javaHome(context, module).map(CompilerData(hydraJars, _, incrementalityType))
       } else {
         javaHome(context, module).map(CompilerData(jars, _, incrementalityType))

@@ -7,7 +7,7 @@ import java.util.Collections
 
 import org.jetbrains.jps.builders.java.{JavaBuilderUtil, JavaModuleBuildTargetType}
 import org.jetbrains.jps.incremental.java.JavaBuilder
-import org.jetbrains.jps.incremental.scala.model.{CompileOrder, CompilerSettings}
+import org.jetbrains.jps.incremental.scala.model.{CompileOrder, CompilerSettings, LibrarySettings}
 import org.jetbrains.jps.incremental.{CompileContext, ModuleBuildTarget}
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
 import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions
@@ -77,8 +77,9 @@ object CompilationData {
 
       val canonicalSources = sources.map(_.getCanonicalFile)
 
-      val sourcePathOption = if(SettingsManager.getHydraSettings(context.getProjectDescriptor.getProject).isHydraEnabled)
-                              Seq("-sourcepath", outputGroups.map(_._1).mkString(File.pathSeparator))
+      val hydraSettings = SettingsManager.getHydraSettings(context.getProjectDescriptor.getProject)
+      val sourcePathOption = if(hydraSettings.isHydraEnabled && hydraSettings.getArtifactPaths.containsKey(scalaVersionFrom(classpath)))
+                              Seq("-sourcepath", outputGroups.map(_._1).mkString(File.pathSeparator), "cpus", "2")
                               else
                               Seq.empty
 
@@ -217,5 +218,20 @@ object CompilationData {
     if (errors.isEmpty) None else Some(errors.mkString("\n") +
             "\nPlease configure separate output paths to proceed with the compilation." +
             "\nTIP: you can use Project Artifacts to combine compiled classes if needed.")
+  }
+
+  private def scalaVersionFrom(compilerClasspath: Seq[File]): String = {
+    val compilerJarVersions = compilerClasspath.flatMap(file => versionOf(file).toSeq)
+
+    compilerJarVersions.headOption.getOrElse("UNKNOWN")
+  }
+
+  private def versionOf(file: File): Option[String] = {
+    val FileName = "(?:scala-compiler|scala-library|scala-reflect)-(.*).jar".r
+
+    file.getName match {
+      case FileName(number) => Some(number)
+      case _ => None
+    }
   }
 }

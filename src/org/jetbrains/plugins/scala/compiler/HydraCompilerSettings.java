@@ -6,8 +6,9 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
   * @author Maris Alexandru
@@ -19,7 +20,7 @@ import java.util.List;
 class HydraCompilerSettings implements PersistentStateComponent<HydraCompilerSettings> {
   public boolean isHydraEnabled = false;
 
-  public List<String> artifactPaths = new LinkedList<>();
+  public Map<String, List<String>> artifactPaths = new HashMap();
 
   public String hydraVersion = "";
 

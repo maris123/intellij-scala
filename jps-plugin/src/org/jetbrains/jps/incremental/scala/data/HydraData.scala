@@ -10,23 +10,27 @@ import scala.collection.JavaConverters._
 /**
   * @author Maris Alexandru
   */
-case class HydraData(project: JpsProject, files: List[File]) {
-  def getCompilerJar(): Option[File] = {
-    files.find(_.getName.matches(".*scala-compiler-2.11.8-hydra\\d\\d\\.jar"))
+case class HydraData(project: JpsProject, files: Map[String, List[File]]) {
+  def getCompilerJar(scalaVersion: String): Option[File] = {
+    files.get(scalaVersion).getOrElse(List()).find(_.getName.matches(s".*scala-compiler-$scalaVersion-hydra\\d\\d\\.jar"))
   }
 
-  def getReflectJar(): Option[File] = {
-    files.find(_.getName.matches(".*scala-reflect-2.11.8-hydra\\d\\d\\.jar"))
+  def getReflectJar(scalaVersion: String): Option[File] = {
+    files.get(scalaVersion).getOrElse(List()).find(_.getName.matches(s".*scala-reflect-$scalaVersion-hydra\\d\\d\\.jar"))
   }
 
-  def otherFiles(): Seq[File] = {
-    files.filterNot(_.getName.contains("scala-compiler"))
+  def otherFiles(scalaVersion: String): Seq[File] = {
+    files.get(scalaVersion).getOrElse(List()).filterNot(_.getName.contains("scala-compiler"))
+  }
+
+  def hydraBridge(scalaVersion: String): Option[File] = {
+    files.get(scalaVersion).getOrElse(List()).find(_.getName.matches(s".*hydra-bridge_1_0-${SettingsManager.getHydraSettings(project).getHydraVersion}-sources.jar"))
   }
 }
 
 object HydraData {
   def apply(project: JpsProject): HydraData = {
-    val files = SettingsManager.getHydraSettings(project).getArtifactPaths.asScala.toList.map(path => new File(path))
-    HydraData(project, files)
+    val files = SettingsManager.getHydraSettings(project).getArtifactPaths.asScala.map { case (key, list) => (key, list.asScala.toList.map(new File(_))) }
+    HydraData(project, Map(files.toSeq: _*))
   }
 }

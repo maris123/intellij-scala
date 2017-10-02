@@ -4,8 +4,10 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.ex.JpsElementBase;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Maris Alexandru
@@ -23,7 +25,12 @@ public class HydraSettingsImpl extends JpsElementBase<HydraSettingsImpl> impleme
   public boolean isHydraEnabled() { return myState.isHydraEnabled; }
 
   @Override
-  public List<String> getArtifactPaths() { return myState.artifactPaths; }
+  public String getHydraVersion() {
+    return myState.hydraVersion;
+  }
+
+  @Override
+  public Map<String, List<String>> getArtifactPaths() { return myState.artifactPaths; }
 
   @NotNull
   @Override
@@ -38,6 +45,7 @@ public class HydraSettingsImpl extends JpsElementBase<HydraSettingsImpl> impleme
 
   public static class State {
     public boolean isHydraEnabled = false;
-    public List<String> artifactPaths = new LinkedList<>();
+    public String hydraVersion = "";
+    public Map<String, List<String>> artifactPaths = new HashMap();
   }
 }

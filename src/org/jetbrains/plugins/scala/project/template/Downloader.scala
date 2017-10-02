@@ -32,7 +32,6 @@ object Downloader {
         handler.addProcessListener(listenerAdapter)
         handler.startNotify()
         handler.waitFor()
-
         if (process.exitValue != 0) {
           throw new DownloadException(buffer.toString)
         }
@@ -65,10 +64,10 @@ object Downloader {
       "updateClassifiers")
 
     case Platform.Hydra => Seq(
-      s"""set scalaVersion := "$version"""",
+      s"""set scalaVersion := "${version.split("_")(0)}"""",
       s"""set credentials := Seq(Credentials("Artifactory Realm", "repo.triplequote.com", "${HydraCredentialsManager.getLogin}", "${HydraCredentialsManager.getPlainPassword}"))""",
-      s"""set resolvers := Seq(Resolver.url("Triplequote Plugins Ivy Releases", url("https://repo.triplequote.com/artifactory/ivy-releases/"))(Resolver.ivyStylePatterns), Resolver.url("Triplequote sbt-plugin-relseases", url("https://repo.triplequote.com/artifactory/sbt-plugins-snapshot/"))(Resolver.ivyStylePatterns),  "Triplequote Plugins Releases" at "https://repo.triplequote.com/artifactory/libs-release-local/")""",
-      s"""set libraryDependencies := Seq("com.triplequote" % "hydra_${version}" % "0.9.3", ("com.triplequote" % "hydra-bridge" % "0.9.4-SNAPSHOT").sources())""",
+      s"""set resolvers := Seq(Resolver.url("Triplequote Plugins Ivy Releases", url("https://repo.triplequote.com/artifactory/ivy-releases/"))(Resolver.ivyStylePatterns), Resolver.url("Triplequote sbt-plugin-relseases", url("https://repo.triplequote.com/artifactory/sbt-plugins-release/"))(Resolver.ivyStylePatterns),  "Triplequote Plugins Releases" at "https://repo.triplequote.com/artifactory/libs-release-local/")""",
+      s"""set libraryDependencies := Seq("com.triplequote" % "hydra_${version.split("_")(0)}" % "${version.split("_")(1)}", ("com.triplequote" % "hydra-bridge_1_0" % "${version.split("_")(1)}").sources())""",
       "updateClassifiers",
       "show dependencyClasspath")
   }

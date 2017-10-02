@@ -2,10 +2,11 @@ package org.jetbrains.plugins.scala.project
 
 import com.intellij.util.net.HttpConfigurable
 import org.jetbrains.plugins.scala.buildinfo.BuildInfo
-import org.jetbrains.plugins.scala.project.Platform.{Dotty, Scala}
+import org.jetbrains.plugins.scala.compiler.HydraCredentialsManager
+import org.jetbrains.plugins.scala.project.Platform.{Dotty, Hydra, Scala}
 
 import scala.io.Source
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 import scala.util.matching.Regex
 
 /**
@@ -21,15 +22,19 @@ object Versions  {
   def loadScalaVersions(platform: Platform): Array[String] = platform match {
     case Scala => loadVersionsOf(Entity.Scala)
     case Dotty => loadVersionsOf(Entity.Dotty)
+    case Hydra => loadVersionsOf(Entity.Hydra)
   }
 
   def loadSbtVersions: Array[String] = loadVersionsOf(Entity.Sbt013, Entity.Sbt1)
 
   private def loadVersionsOf(entities: Entity*): Array[String] = {
     val allVersions = entities.flatMap { entity =>
-      val loaded = loadVersionsFrom(entity.url, {
-        case entity.pattern(number) => number
-      })
+      val loaded = entity match {
+        case Entity.Hydra => loadVersionsForHydra()
+        case _ => loadVersionsFrom(entity.url, {
+          case entity.pattern(number) => number
+        })
+      }
 
     loaded
       .getOrElse(entity.hardcodedVersions)
@@ -47,12 +52,26 @@ object Versions  {
   }
 
   private def loadLinesFrom(url: String): Try[Seq[String]] = {
-    Try(HttpConfigurable.getInstance().openHttpConnection(url)).map { connection =>
+    val urlConnection = HttpConfigurable.getInstance().openHttpConnection(url)
+    if(url == Entity.Hydra.url)
+      urlConnection.setRequestProperty("Authorization", "Basic " + HydraCredentialsManager.getBasicAuthEncoding())
+    Try(urlConnection).map { connection =>
       try {
         Source.fromInputStream(connection.getInputStream).getLines().toVector
       } finally {
         connection.disconnect()
       }
+    }
+  }
+
+  private def loadVersionsForHydra() = {
+    def g(version: String, url: String,filter: PartialFunction[String, String]): Seq[String] = loadVersionsFrom(url, filter).get.map(Version(_)).filter(newVer => newVer >= Entity.Hydra.minVersion).map(_.toString)
+    val entity = Entity.Hydra
+    loadVersionsFrom(entity.url, {
+      case entity.pattern(number) => number
+    }) match {
+      case Success(versions) => Try(versions.flatMap(version => g(version, s"""${entity.url}$version/""", {case entity.pattern(number) => number})))
+      case Failure(x) => Failure(x)
     }
   }
 
@@ -80,5 +99,11 @@ object Versions  {
       """.+>(\d+.\d+.+)/<.*""".r,
       Version("0.2.0"),
       Seq("0.2.0-RC1"))
+
+    val Hydra = Entity("https://repo.triplequote.com/artifactory/ivy-releases/com.triplequote/",
+      ".+>(.*\\d+\\.\\d+\\.\\d+.*)/<.*".r,
+      Version("0.9.4"),
+      Seq("0.9.4")
+    )
   }
 }
