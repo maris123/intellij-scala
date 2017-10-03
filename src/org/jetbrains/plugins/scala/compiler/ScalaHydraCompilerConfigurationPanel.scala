@@ -52,7 +52,8 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   }
 
   private def downloadVersionWithProgress(scalaVersions: Seq[String], hydraVersion: String): Unit = {
-    val filteredScalaVersions = scalaVersions.filterNot(_ == UNKNOWN_VERSION).map(Version(_)).filter(_ >= Version("2.11")).map(_.presentation).filterNot(_ == "2.12.0")
+    val filteredScalaVersions = scalaVersions.filterNot(_ == UNKNOWN_VERSION)
+      .map(Version(_)).filter(_ >= Version("2.11")).map(_.presentation).filterNot(_ == "2.12.0").distinct
     val result = extensions.withProgressSynchronouslyTry(s"Downloading Hydra $hydraVersion for ${filteredScalaVersions.mkString(", ")}")(downloadVersion(filteredScalaVersions, hydraVersion))
     result match {
       case Failure(exception) => {
