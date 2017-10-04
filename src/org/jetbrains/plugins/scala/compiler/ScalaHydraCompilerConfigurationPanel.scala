@@ -28,9 +28,9 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   val focusListener = new FocusListener {
     override def focusGained(e: FocusEvent) = {}
 
-    override def focusLost(e: FocusEvent) = if (!getUsername.isEmpty && !getPassword.isEmpty) {
-      HydraCredentialsManager.setLogin(getUsername)
-      HydraCredentialsManager.setPlainPassword(getPassword)
+    override def focusLost(e: FocusEvent) = if (!getUsername.isEmpty && !getPassword.isEmpty &&
+      (HydraCredentialsManager.getLogin != getUsername || HydraCredentialsManager.getPlainPassword != getPassword)) {
+      HydraCredentialsManager.setCredentials(getUsername, getPassword)
       myVersion.setItems(Versions.loadScalaVersions(Platform.Hydra))
     }
   }
@@ -45,8 +45,6 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   def selectedVersion: String = myVersion.getSelectedItem.asInstanceOf[String]
 
   def onDownload() = {
-    HydraCredentialsManager.setLogin(getUsername)
-    HydraCredentialsManager.setPlainPassword(getPassword)
     downloadVersionWithProgress(project.scalaModules.map(module => module.sdk.compilerVersion.getOrElse(UnknownVersion)), selectedVersion)
     settings.hydraVersion = selectedVersion
   }
