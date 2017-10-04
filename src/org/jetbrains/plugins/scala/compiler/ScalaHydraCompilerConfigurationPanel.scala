@@ -31,18 +31,18 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
     override def focusLost(e: FocusEvent) = if (!getUsername.isEmpty && !getPassword.isEmpty &&
       (HydraCredentialsManager.getLogin != getUsername || HydraCredentialsManager.getPlainPassword != getPassword)) {
       HydraCredentialsManager.setCredentials(getUsername, getPassword)
-      myVersion.setItems(Versions.loadScalaVersions(Platform.Hydra))
+      hydraVersionComboBox.setItems(Versions.loadScalaVersions(Platform.Hydra))
     }
   }
 
-  myTextField1.addFocusListener(focusListener)
-  myTextField1.getDocument.addDocumentListener(documentAdapter)
-  myPasswordField1.getDocument.addDocumentListener(documentAdapter)
-  myPasswordField1.addFocusListener(focusListener)
-  myVersion.setItems(Versions.loadScalaVersions(Platform.Hydra))
+  userTextField.addFocusListener(focusListener)
+  userTextField.getDocument.addDocumentListener(documentAdapter)
+  passwordTextField.getDocument.addDocumentListener(documentAdapter)
+  passwordTextField.addFocusListener(focusListener)
+  hydraVersionComboBox.setItems(Versions.loadScalaVersions(Platform.Hydra))
   downloadButton.addActionListener((_: ActionEvent) => onDownload())
 
-  def selectedVersion: String = myVersion.getSelectedItem.asInstanceOf[String]
+  def selectedVersion: String = hydraVersionComboBox.getSelectedItem.asInstanceOf[String]
 
   def onDownload() = {
     downloadVersionWithProgress(project.scalaModules.map(module => module.sdk.compilerVersion.getOrElse(UnknownVersion)), selectedVersion)
@@ -59,7 +59,7 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
       val result = extensions.withProgressSynchronouslyTry(s"Downloading Hydra $hydraVersion for $scalaVersionsToBeDownloadedString")(downloadVersion(scalaVersionsToBeDownloaded, hydraVersion))
       result match {
         case Failure(exception) => {
-          Messages.showErrorDialog(myContentPanel, exception.getMessage, s"Error Downloading Hydra $hydraVersion for $scalaVersionsToBeDownloadedString")
+          Messages.showErrorDialog(contentPanel, exception.getMessage, s"Error Downloading Hydra $hydraVersion for $scalaVersionsToBeDownloadedString")
         }
         case Success(_) => Messages.showInfoMessage(s"Successfully downloaded Hydra $hydraVersion for $scalaVersionsToBeDownloadedString", "Download Hydra Successful")
       }
