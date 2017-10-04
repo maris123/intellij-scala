@@ -53,7 +53,7 @@ object Versions  {
 
   private def loadLinesFrom(url: String): Try[Seq[String]] = {
     val urlConnection = HttpConfigurable.getInstance().openHttpConnection(url)
-    if(url == Entity.Hydra.url)
+    if(url.contains(Entity.Hydra.url))
       urlConnection.setRequestProperty("Authorization", "Basic " + HydraCredentialsManager.getBasicAuthEncoding())
     Try(urlConnection).map { connection =>
       try {
@@ -65,12 +65,14 @@ object Versions  {
   }
 
   private def loadVersionsForHydra() = {
-    def g(version: String, url: String,filter: PartialFunction[String, String]): Seq[String] = loadVersionsFrom(url, filter).get.map(Version(_)).filter(newVer => newVer >= Entity.Hydra.minVersion).map(_.toString)
     val entity = Entity.Hydra
+    def downloadHydraVersions(url: String): Seq[String] =
+      loadVersionsFrom(url, {case entity.pattern(number) => number}).getOrElse(entity.hardcodedVersions).map(Version(_)).filter(newVer => newVer >= entity.minVersion).map(_.toString)
+
     loadVersionsFrom(entity.url, {
       case entity.pattern(number) => number
     }) match {
-      case Success(versions) => Try(versions.flatMap(version => g(version, s"""${entity.url}$version/""", {case entity.pattern(number) => number})))
+      case Success(versions) => Try(versions.flatMap(version => downloadHydraVersions(s"""${entity.url}$version/""")).distinct)
       case Failure(x) => Failure(x)
     }
   }

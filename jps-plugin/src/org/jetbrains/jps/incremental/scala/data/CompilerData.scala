@@ -27,8 +27,15 @@ object CompilerData {
     val compilerJars = if (SettingsManager.hasScalaSdk(module)) {
       compilerJarsIn(module).flatMap { case jars: CompilerJars =>
         val absentJars = jars.files.filter(!_.exists)
+        val compileJars =
+          if (absentJars.isEmpty && SettingsManager.getHydraSettings(project.getProject).isHydraEnabled
+            && SettingsManager.getHydraSettings(project.getProject).getArtifactPaths.containsKey(compilerVersion(module).getOrElse("UNKNOWN"))) {
+            val scalaVersion = compilerVersion(module).getOrElse("UNKNOWN")
+            val hydraData = HydraData(project.getProject)
+            CompilerJars(jars.library, hydraData.getCompilerJar(scalaVersion).getOrElse(jars.compiler), hydraData.otherJars(scalaVersion))
+          } else jars
         Either.cond(absentJars.isEmpty,
-          Some(jars),
+          Some(compileJars),
           "Scala compiler JARs not found (module '" + chunk.representativeTarget().getModule.getName + "'): "
                   + absentJars.map(_.getPath).mkString(", "))
       }
@@ -38,14 +45,7 @@ object CompilerData {
 
     compilerJars.flatMap { jars =>
       val incrementalityType = SettingsManager.getProjectSettings(project.getProject).getIncrementalityType
-      if(SettingsManager.getHydraSettings(project.getProject).isHydraEnabled && SettingsManager.getHydraSettings(project.getProject).getArtifactPaths.containsKey(version(jars.get.compiler).getOrElse("UNKNOWN"))) {
-        val scalaVersion = version(jars.get.compiler)
-        val hydraData = HydraData(project.getProject)
-        val hydraJars = Some(new CompilerJars(jars.get.library, hydraData.getCompilerJar(scalaVersion.get).getOrElse(jars.get.compiler), hydraData.otherFiles(scalaVersion.get)))
-        javaHome(context, module).map(CompilerData(hydraJars, _, incrementalityType))
-      } else {
-        javaHome(context, module).map(CompilerData(jars, _, incrementalityType))
-      }
+      javaHome(context, module).map(CompilerData(jars, _, incrementalityType))
     }
 
   }
