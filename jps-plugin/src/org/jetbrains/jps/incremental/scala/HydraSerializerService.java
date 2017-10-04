@@ -25,7 +25,7 @@ public class HydraSerializerService  extends JpsModelSerializerExtension {
 
   private static class HydraSettingsSerializer extends JpsProjectExtensionSerializer {
     private HydraSettingsSerializer() {
-      super("scala.xml", "HydraSettings");
+      super("hydra.xml", "HydraSettings");
     }
 
     @Override

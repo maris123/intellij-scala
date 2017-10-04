@@ -31,6 +31,6 @@ case class HydraData(project: JpsProject, files: Map[String, List[File]]) {
 object HydraData {
   def apply(project: JpsProject): HydraData = {
     val files = SettingsManager.getHydraSettings(project).getArtifactPaths.asScala.map { case (key, list) => (key, list.asScala.toList.map(new File(_))) }
-    HydraData(project, Map(files.toSeq: _*))
+    HydraData(project, files.toMap)
   }
 }

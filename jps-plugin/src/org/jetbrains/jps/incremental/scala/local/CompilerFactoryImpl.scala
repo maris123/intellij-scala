@@ -96,9 +96,11 @@ object CompilerFactoryImpl {
                                client: Option[Client]): File = {
 
     val scalaVersion = scalaInstance.actualVersion
-    val sourceJar = if(scalaVersion.contains("hydra")) scalaInstance.otherJars().find(_.getName.contains("hydra-bridge")).get
-                    else if (isBefore_2_11(scalaVersion)) sourceJars._2_10
-                    else sourceJars._2_11
+    val sourceJar =
+      if (scalaVersion.contains("hydra"))
+        scalaInstance.otherJars().find(_.getName.contains("hydra-bridge")).get
+      else if (isBefore_2_11(scalaVersion)) sourceJars._2_10
+      else sourceJars._2_11
 
     val interfaceId = "compiler-interface-" + scalaVersion + "-" + javaClassVersion
     val targetJar = new File(home, interfaceId + ".jar")

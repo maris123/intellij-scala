@@ -15,8 +15,8 @@ class HydraCompilerConfigurable (project: Project, settings: HydraCompilerSettin
   override def createComponent(): JPanel = form.getContentPanel
 
   override def isModified: Boolean = form.isHydraEnabled != settings.isHydraEnabled ||
-          form.getUsername != HydraCredentialsManager.getLogin ||
-          form.getPassword != HydraCredentialsManager.getPlainPassword
+    form.getUsername != HydraCredentialsManager.getLogin ||
+    form.getPassword != HydraCredentialsManager.getPlainPassword
 
   override def reset() {
     form.setUsername(HydraCredentialsManager.getLogin)

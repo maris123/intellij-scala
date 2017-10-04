@@ -11,13 +11,13 @@ import com.intellij.ui.DocumentAdapter
 import org.jetbrains.plugins.scala.project.{Platform, ProjectExt, Version, Versions}
 
 import scala.collection.JavaConverters._
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 /**
   * @author Maris Alexandru
   */
 class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraCompilerSettings) extends HydraCompilerConfigurationPanel {
-  private val UNKNOWN_VERSION = "unknown"
+  private val UnknownVersion = "unknown"
 
   val documentAdapter = new DocumentAdapter {
       override def textChanged(documentEvent: DocumentEvent): Unit =
@@ -47,19 +47,26 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   def onDownload() = {
     HydraCredentialsManager.setLogin(getUsername)
     HydraCredentialsManager.setPlainPassword(getPassword)
-    downloadVersionWithProgress(project.scalaModules.map(module => module.sdk.compilerVersion.getOrElse(UNKNOWN_VERSION)), selectedVersion)
+    downloadVersionWithProgress(project.scalaModules.map(module => module.sdk.compilerVersion.getOrElse(UnknownVersion)), selectedVersion)
     settings.hydraVersion = selectedVersion
   }
 
   private def downloadVersionWithProgress(scalaVersions: Seq[String], hydraVersion: String): Unit = {
-    val filteredScalaVersions = scalaVersions.filterNot(_ == UNKNOWN_VERSION)
-      .map(Version(_)).filter(_ >= Version("2.11")).map(_.presentation).filterNot(_ == "2.12.0").distinct
-    val result = extensions.withProgressSynchronouslyTry(s"Downloading Hydra $hydraVersion for ${filteredScalaVersions.mkString(", ")}")(downloadVersion(filteredScalaVersions, hydraVersion))
-    result match {
-      case Failure(exception) => {
-        Messages.showErrorDialog(myContentPanel, exception.getMessage, s"Error Downloading Hydra $hydraVersion for ${filteredScalaVersions.mkString(", ")}")
+    val filteredScalaVersions = scalaVersions.distinct.filterNot(_ == UnknownVersion)
+      .map(Version(_)).filter(_ >= Version("2.11")).map(_.presentation).filterNot(_ == "2.12.0")
+    val filteredScalaVersionsString = filteredScalaVersions.mkString(", ")
+    val scalaVersionsToBeDownloaded = filteredScalaVersions.filterNot(settings.artifactPaths.containsKey(_))
+    val scalaVersionsToBeDownloadedString = scalaVersionsToBeDownloaded.mkString(", ")
+    if (!scalaVersionsToBeDownloaded.isEmpty) {
+      val result = extensions.withProgressSynchronouslyTry(s"Downloading Hydra $hydraVersion for $scalaVersionsToBeDownloadedString")(downloadVersion(scalaVersionsToBeDownloaded, hydraVersion))
+      result match {
+        case Failure(exception) => {
+          Messages.showErrorDialog(myContentPanel, exception.getMessage, s"Error Downloading Hydra $hydraVersion for $scalaVersionsToBeDownloadedString")
+        }
+        case Success(_) => Messages.showInfoMessage(s"Successfully downloaded Hydra $hydraVersion for $scalaVersionsToBeDownloadedString", "Download Hydra Successful")
       }
-      case _ =>
+    } else {
+      Messages.showInfoMessage(s"Hydra $hydraVersion for $filteredScalaVersionsString is already downloaded", "Hydra version already downloaded")
     }
   }
 

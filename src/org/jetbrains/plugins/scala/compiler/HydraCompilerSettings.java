@@ -15,7 +15,7 @@ import java.util.Map;
   */
 @State(
         name = "HydraSettings",
-        storages = {@Storage("scala.xml")}
+        storages = {@Storage("hydra.xml")}
 )
 class HydraCompilerSettings implements PersistentStateComponent<HydraCompilerSettings> {
   public boolean isHydraEnabled = false;

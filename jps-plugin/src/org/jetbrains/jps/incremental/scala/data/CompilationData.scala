@@ -78,10 +78,11 @@ object CompilationData {
       val canonicalSources = sources.map(_.getCanonicalFile)
 
       val hydraSettings = SettingsManager.getHydraSettings(context.getProjectDescriptor.getProject)
-      val sourcePathOption = if(hydraSettings.isHydraEnabled && hydraSettings.getArtifactPaths.containsKey(scalaVersionFrom(classpath)))
-                              Seq("-sourcepath", outputGroups.map(_._1).mkString(File.pathSeparator), "cpus", "2")
-                              else
-                              Seq.empty
+      val sourcePathOption =
+        if (hydraSettings.isHydraEnabled && hydraSettings.getArtifactPaths.containsKey(scalaVersionFrom(classpath)))
+          Seq("-sourcepath", outputGroups.map(_._1).mkString(File.pathSeparator), "-cpus", "2")
+        else
+          Seq.empty
 
       val isCompile =
         !JavaBuilderUtil.isCompileJavaIncrementally(context) &&
