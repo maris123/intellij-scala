@@ -66,14 +66,15 @@ object Versions  {
 
   private def loadVersionsForHydra() = {
     val entity = Entity.Hydra
+
     def downloadHydraVersions(url: String): Seq[String] =
-      loadVersionsFrom(url, {case entity.pattern(number) => number}).getOrElse(entity.hardcodedVersions).map(Version(_)).filter(newVer => newVer >= entity.minVersion).map(_.toString)
+      loadVersionsFrom(url, { case entity.pattern(number) => number }).getOrElse(entity.hardcodedVersions).map(Version(_))
+        .filter(_ >= entity.minVersion).map(_.presentation)
 
     loadVersionsFrom(entity.url, {
       case entity.pattern(number) => number
-    }) match {
-      case Success(versions) => Try(versions.flatMap(version => downloadHydraVersions(s"""${entity.url}$version/""")).distinct)
-      case Failure(x) => Failure(x)
+    }).map { versions =>
+      versions.flatMap(version => downloadHydraVersions(s"""${entity.url}$version/""")).distinct
     }
   }
 

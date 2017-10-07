@@ -12,32 +12,32 @@ import org.jetbrains.plugins.scala.project.template.Downloader
 object HydraArtifactsCache {
   private val LOG = Logger.getInstance(this.getClass)
   private val cache = new ConcurrentHashMap[(String, String), Seq[String]]()
-  private val SplitRegex = "\\[info\\] \\* Attributed\\(|\\)"
-  private val ArtifactsRegex = "\\[info\\] \\* Attributed\\(.*\\)"
-  private val HydraRegex = ".*hydra_(\\d+\\.\\d+\\.\\d+)-(\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?)\\.jar".r
+  private val SplitRegex = "\\* Attributed\\(|\\)".r
+  private val ArtifactsRegex = "\\* Attributed\\(.*\\)".r
 
-  private def cacheArtifacts(artifacts: String): Unit = {
-    val paths = artifacts.split("\n").filter(s => s.matches(ArtifactsRegex)).map(s => s.split(SplitRegex)(1))
-    val hydraPath = paths.filter(s => s.matches(HydraRegex.regex))(0)
-    val HydraRegex(scalaVersion, hydraVersion, _) = hydraPath
-    val hydraBridge = s"${System.getProperty("user.home")}/.ivy2/cache/com.triplequote/hydra-bridge_1_0/srcs/hydra-bridge_1_0-$hydraVersion-sources.jar"
-    cache.put((scalaVersion, hydraVersion), hydraBridge +: paths)
+  private def cacheArtifacts(artifacts: String, scalaVersion: String, hydraVersion: String) = {
+    val paths = artifacts.split("\n").filter(s => ArtifactsRegex.findFirstIn(s).nonEmpty).map(s => SplitRegex.split(s)(1))
+    val hydraBridge = s"${env("IVY_HOME").getOrElse(System.getProperty("user.home") + "/.ivy2")}/cache/com.triplequote/hydra-bridge_1_0/srcs/hydra-bridge_1_0-$hydraVersion-sources.jar"
+    val artifactPaths = hydraBridge +: paths
+    cache.put((scalaVersion, hydraVersion), artifactPaths)
+    artifactPaths
   }
 
-  def getOrDownload(scalaVersion: String, hydraVersion: String,listener: (String) => Unit) = {
+  def getOrDownload(scalaVersion: String, hydraVersion: String, listener: (String) => Unit): Seq[String] = {
     val artifacts = cache.getOrDefault((scalaVersion, hydraVersion), Seq.empty)
 
-    if(artifacts.isEmpty) {
+    if (artifacts.isEmpty) {
       val stringBuilder = new StringBuilder
       Downloader.downloadScala(Platform.Hydra, s"${scalaVersion}_$hydraVersion", (text: String) => {
         stringBuilder.append(text)
         listener(text)
       })
       LOG.info(stringBuilder.toString())
-      cacheArtifacts(stringBuilder.toString)
-      cache.get((scalaVersion, hydraVersion))
+      cacheArtifacts(stringBuilder.toString, scalaVersion, hydraVersion)
     } else {
       artifacts
     }
   }
+
+  private def env(name: String): Option[String] = Option(System.getenv(name))
 }

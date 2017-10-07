@@ -21,14 +21,14 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
 
   val documentAdapter = new DocumentAdapter {
       override def textChanged(documentEvent: DocumentEvent): Unit =
-        if (!getUsername.isEmpty && !getPassword.isEmpty) downloadButton.setEnabled(true)
+        if (getUsername.nonEmpty && getPassword.nonEmpty) downloadButton.setEnabled(true)
         else downloadButton.setEnabled(false)
     }
 
   val focusListener = new FocusListener {
     override def focusGained(e: FocusEvent) = {}
 
-    override def focusLost(e: FocusEvent) = if (!getUsername.isEmpty && !getPassword.isEmpty &&
+    override def focusLost(e: FocusEvent) = if (getUsername.nonEmpty && getPassword.nonEmpty &&
       (HydraCredentialsManager.getLogin != getUsername || HydraCredentialsManager.getPlainPassword != getPassword)) {
       HydraCredentialsManager.setCredentials(getUsername, getPassword)
       hydraVersionComboBox.setItems(Versions.loadScalaVersions(Platform.Hydra))
@@ -50,8 +50,14 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   }
 
   private def downloadVersionWithProgress(scalaVersions: Seq[String], hydraVersion: String): Unit = {
-    val filteredScalaVersions = scalaVersions.distinct.filterNot(_ == UnknownVersion)
-      .map(Version(_)).filter(_ >= Version("2.11")).map(_.presentation).filterNot(_ == "2.12.0")
+    val filteredScalaVersions = for {
+      rawVersion <- scalaVersions.distinct
+      if rawVersion != UnknownVersion && rawVersion != "2.12.0"
+      version = Version(rawVersion)
+      if version >= Version("2.11")
+      filteredVersion = version.presentation
+    } yield filteredVersion
+
     val filteredScalaVersionsString = filteredScalaVersions.mkString(", ")
     val scalaVersionsToBeDownloaded = filteredScalaVersions.filterNot(settings.artifactPaths.containsKey(_))
     val scalaVersionsToBeDownloadedString = scalaVersionsToBeDownloaded.mkString(", ")

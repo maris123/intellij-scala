@@ -31,8 +31,8 @@ object CompilerData {
           if (absentJars.isEmpty && SettingsManager.getHydraSettings(project.getProject).isHydraEnabled
             && SettingsManager.getHydraSettings(project.getProject).getArtifactPaths.containsKey(compilerVersion(module).getOrElse("UNKNOWN"))) {
             val scalaVersion = compilerVersion(module).getOrElse("UNKNOWN")
-            val hydraData = HydraData(project.getProject)
-            CompilerJars(jars.library, hydraData.getCompilerJar(scalaVersion).getOrElse(jars.compiler), hydraData.otherJars(scalaVersion))
+            val hydraData = HydraData(project.getProject, scalaVersion)
+            CompilerJars(jars.library, hydraData.getCompilerJar.getOrElse(jars.compiler), hydraData.otherJars)
           } else jars
         Either.cond(absentJars.isEmpty,
           Some(compileJars),
