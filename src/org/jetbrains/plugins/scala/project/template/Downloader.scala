@@ -4,7 +4,6 @@ import java.io.{File, FileNotFoundException}
 
 import com.intellij.execution.process.{OSProcessHandler, ProcessAdapter, ProcessEvent}
 import com.intellij.openapi.util.Key
-import org.jetbrains.plugins.scala.caches.HydraArtifactsCache
 import org.jetbrains.plugins.scala.compiler.HydraCredentialsManager
 import org.jetbrains.plugins.scala.project.Platform
 

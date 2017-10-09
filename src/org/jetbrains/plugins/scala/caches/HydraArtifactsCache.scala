@@ -1,9 +1,9 @@
 package org.jetbrains.plugins.scala.caches
 
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 import com.intellij.openapi.diagnostic.Logger
-import org.jetbrains.plugins.scala.project.Platform
 import org.jetbrains.plugins.scala.project.template.Downloader
 
 /**
@@ -14,14 +14,8 @@ object HydraArtifactsCache {
   private val cache = new ConcurrentHashMap[(String, String), Seq[String]]()
   private val SplitRegex = "\\* Attributed\\(|\\)".r
   private val ArtifactsRegex = "\\* Attributed\\(.*\\)".r
-
-  private def cacheArtifacts(artifacts: String, scalaVersion: String, hydraVersion: String) = {
-    val paths = artifacts.split("\n").filter(s => ArtifactsRegex.findFirstIn(s).nonEmpty).map(s => SplitRegex.split(s)(1))
-    val hydraBridge = s"${env("IVY_HOME").getOrElse(System.getProperty("user.home") + "/.ivy2")}/cache/com.triplequote/hydra-bridge_1_0/srcs/hydra-bridge_1_0-$hydraVersion-sources.jar"
-    val artifactPaths = hydraBridge +: paths
-    cache.put((scalaVersion, hydraVersion), artifactPaths)
-    artifactPaths
-  }
+  private val GroupId = "com.triplequote"
+  private val PathSeparator = File.separator
 
   def getOrDownload(scalaVersion: String, hydraVersion: String, listener: (String) => Unit): Seq[String] = {
     val artifacts = cache.getOrDefault((scalaVersion, hydraVersion), Seq.empty)
@@ -39,5 +33,19 @@ object HydraArtifactsCache {
     }
   }
 
-  private def env(name: String): Option[String] = Option(System.getenv(name))
+  private def cacheArtifacts(artifacts: String, scalaVersion: String, hydraVersion: String) = {
+    val paths = artifacts.split("\n").filter(s => ArtifactsRegex.findFirstIn(s).nonEmpty).map(s => SplitRegex.split(s)(1))
+    val hydraBridge = s"${findDownloadFolder(paths.head)}$GroupId" / "hydra-bridge_1_0" / "srcs" / s"hydra-bridge_1_0-$hydraVersion-sources.jar"
+    val artifactPaths = hydraBridge +: paths
+    cache.put((scalaVersion, hydraVersion), artifactPaths)
+    artifactPaths
+  }
+
+  private def findDownloadFolder(path: String) = {
+    path.split(GroupId).head
+  }
+
+  private implicit class Path(path: String) {
+    def / (otherPath: String) = s"$path$PathSeparator$otherPath"
+  }
 }

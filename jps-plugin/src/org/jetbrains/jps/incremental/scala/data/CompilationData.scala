@@ -7,12 +7,11 @@ import java.util.Collections
 
 import org.jetbrains.jps.builders.java.{JavaBuilderUtil, JavaModuleBuildTargetType}
 import org.jetbrains.jps.incremental.java.JavaBuilder
-import org.jetbrains.jps.incremental.scala.model.{CompileOrder, CompilerSettings, LibrarySettings}
+import org.jetbrains.jps.incremental.scala.model.{CompileOrder, CompilerSettings}
 import org.jetbrains.jps.incremental.{CompileContext, ModuleBuildTarget}
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
 import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions
 import org.jetbrains.jps.{ModuleChunk, ProjectPaths}
-import org.jetbrains.plugin.scala.compiler.NameHashing
 
 import scala.collection.JavaConverters._
 

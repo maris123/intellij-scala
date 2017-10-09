@@ -1,7 +1,7 @@
 package org.jetbrains.plugins.scala.compiler
 
 import java.nio.charset.StandardCharsets
-import java.util.{Base64}
+import java.util.Base64
 
 import com.intellij.credentialStore.{CredentialAttributes, Credentials}
 import com.intellij.ide.passwordSafe.PasswordSafe

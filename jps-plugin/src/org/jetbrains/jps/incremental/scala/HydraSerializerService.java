@@ -4,9 +4,7 @@ import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.scala.model.HydraSettingsImpl;
-import org.jetbrains.jps.model.JpsGlobal;
 import org.jetbrains.jps.model.JpsProject;
-import org.jetbrains.jps.model.serialization.JpsGlobalExtensionSerializer;
 import org.jetbrains.jps.model.serialization.JpsModelSerializerExtension;
 import org.jetbrains.jps.model.serialization.JpsProjectExtensionSerializer;
 

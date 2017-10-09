@@ -8,7 +8,7 @@ import org.jetbrains.plugins.scala.caches.HydraArtifactsCache
 import org.jetbrains.plugins.scala.extensions
 import com.intellij.openapi.project.Project
 import com.intellij.ui.DocumentAdapter
-import org.jetbrains.plugins.scala.project.{Platform, ProjectExt, Version, Versions}
+import org.jetbrains.plugins.scala.project.{ProjectExt, Version, Versions}
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success}
