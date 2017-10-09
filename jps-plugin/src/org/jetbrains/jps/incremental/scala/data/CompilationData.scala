@@ -76,9 +76,10 @@ object CompilationData {
 
       val canonicalSources = sources.map(_.getCanonicalFile)
 
-      val hydraOptions = SettingsManager.getHydraSettings(context.getProjectDescriptor.getProject)
-      val sourcePathOption =
-        if (hydraOptions.isHydraEnabled && hydraOptions.getArtifactPaths.containsKey(CompilerData.compilerVersion(module).getOrElse("UNKNOWN")))
+      val hydraSettings = SettingsManager.getHydraSettings(context.getProjectDescriptor.getProject)
+      val scalaVersion = CompilerData.compilerVersion(module)
+      val hydraOptions =
+        if (hydraSettings.isHydraEnabled && scalaVersion.nonEmpty && hydraSettings.getArtifactPaths.containsKey(scalaVersion.get))
           Seq("-sourcepath", outputGroups.map(_._1).mkString(File.pathSeparator), "-cpus", "2")
         else
           Seq.empty
@@ -87,7 +88,7 @@ object CompilationData {
         !JavaBuilderUtil.isCompileJavaIncrementally(context) &&
           !JavaBuilderUtil.isForcedRecompilationAllJavaModules(context)
 
-      CompilationData(canonicalSources, classpath, output, commonOptions ++ scalaOptions ++ sourcePathOption, commonOptions ++ javaOptions,
+      CompilationData(canonicalSources, classpath, output, commonOptions ++ scalaOptions ++ hydraOptions, commonOptions ++ javaOptions,
         order, cacheFile, relevantOutputToCacheMap, outputGroups,
         ZincData(allSources, compilationStamp, isCompile))
     }

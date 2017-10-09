@@ -14,7 +14,7 @@ import java.util.Map;
 public class HydraSettingsImpl extends JpsElementBase<HydraSettingsImpl> implements HydraSettings{
   public static final HydraSettings DEFAULT = new HydraSettingsImpl(new State());
 
-  private State myState;
+  private final State myState;
 
   public HydraSettingsImpl(State state) {
     this.myState = state;

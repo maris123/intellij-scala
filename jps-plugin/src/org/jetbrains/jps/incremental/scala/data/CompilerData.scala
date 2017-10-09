@@ -24,16 +24,22 @@ object CompilerData {
     val target = chunk.representativeTarget
     val module = target.getModule
 
+    def useHydraCompiler(jars: CompilerJars): Boolean = {
+      val hydraProjectSettings = SettingsManager.getHydraSettings(project.getProject)
+      hydraProjectSettings.isHydraEnabled && compilerVersion(module).nonEmpty && hydraProjectSettings.getArtifactPaths.containsKey(compilerVersion(module).get)
+    }
+
     val compilerJars = if (SettingsManager.hasScalaSdk(module)) {
       compilerJarsIn(module).flatMap { case jars: CompilerJars =>
-        val absentJars = jars.files.filter(!_.exists)
         val compileJars =
-          if (absentJars.isEmpty && SettingsManager.getHydraSettings(project.getProject).isHydraEnabled
-            && SettingsManager.getHydraSettings(project.getProject).getArtifactPaths.containsKey(compilerVersion(module).getOrElse("UNKNOWN"))) {
-            val scalaVersion = compilerVersion(module).getOrElse("UNKNOWN")
+          if (useHydraCompiler(jars)) {
+            val scalaVersion = compilerVersion(module).get
             val hydraData = HydraData(project.getProject, scalaVersion)
-            CompilerJars(jars.library, hydraData.getCompilerJar.getOrElse(jars.compiler), hydraData.otherJars)
+            val hydraOtherJars = hydraData.otherJars
+            val extraJars = if(hydraOtherJars.nonEmpty) hydraOtherJars else jars.extra
+            CompilerJars(jars.library, hydraData.getCompilerJar.getOrElse(jars.compiler), extraJars)
           } else jars
+        val absentJars = compileJars.files.filter(!_.exists)
         Either.cond(absentJars.isEmpty,
           Some(compileJars),
           "Scala compiler JARs not found (module '" + chunk.representativeTarget().getModule.getName + "'): "
@@ -87,6 +93,11 @@ object CompilerData {
 
   def needNoBootCp(chunk: ModuleChunk): Boolean = {
     chunk.getModules.asScala.forall(needNoBootCp)
+  }
+
+  def compilerVersion(module: JpsModule): Option[String] = compilerJarsIn(module) match {
+    case Right(CompilerJars(_, compiler, _)) => version(compiler)
+    case _ => None
   }
 
   private def needNoBootCp(module: JpsModule): Boolean = {
@@ -146,8 +157,4 @@ object CompilerData {
 
   private def version(compiler: File): Option[String] = readProperty(compiler, "compiler.properties", "version.number")
 
-  def compilerVersion(module: JpsModule): Option[String] = compilerJarsIn(module) match {
-    case Right(CompilerJars(_, compiler, _)) => version(compiler)
-    case _ => None
-  }
 }

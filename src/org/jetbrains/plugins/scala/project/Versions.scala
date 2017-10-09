@@ -24,7 +24,7 @@ object Versions  {
     case Dotty => loadVersionsOf(Entity.Dotty)
   }
 
-  def loadHydraVersions(): Array[String] = loadVersionsOf(Entity.Hydra)
+  def loadHydraVersions: Array[String] = loadVersionsOf(Entity.Hydra)
 
   def loadSbtVersions: Array[String] = loadVersionsOf(Entity.Sbt013, Entity.Sbt1)
 

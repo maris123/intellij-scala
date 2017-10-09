@@ -26,9 +26,9 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
     }
 
   val focusListener = new FocusListener {
-    override def focusGained(e: FocusEvent) = {}
+    override def focusGained(e: FocusEvent): Unit = {}
 
-    override def focusLost(e: FocusEvent) = if (getUsername.nonEmpty && getPassword.nonEmpty &&
+    override def focusLost(e: FocusEvent): Unit = if (getUsername.nonEmpty && getPassword.nonEmpty &&
       (HydraCredentialsManager.getLogin != getUsername || HydraCredentialsManager.getPlainPassword != getPassword)) {
       HydraCredentialsManager.setCredentials(getUsername, getPassword)
       hydraVersionComboBox.setItems(Versions.loadHydraVersions)
@@ -61,7 +61,7 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
     val filteredScalaVersionsString = filteredScalaVersions.mkString(", ")
     val scalaVersionsToBeDownloaded = filteredScalaVersions.filterNot(settings.artifactPaths.containsKey(_))
     val scalaVersionsToBeDownloadedString = scalaVersionsToBeDownloaded.mkString(", ")
-    if (!scalaVersionsToBeDownloaded.isEmpty) {
+    if (scalaVersionsToBeDownloaded.nonEmpty) {
       val result = extensions.withProgressSynchronouslyTry(s"Downloading Hydra $hydraVersion for $scalaVersionsToBeDownloadedString")(downloadVersion(scalaVersionsToBeDownloaded, hydraVersion))
       result match {
         case Failure(exception) => {
@@ -77,4 +77,5 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   private def downloadVersion(scalaVersions: Seq[String], hydraVersion: String):(((String) => Unit) => Unit) =
     (listener: (String) => Unit) => scalaVersions.foreach(version =>
       settings.artifactPaths.put(version,HydraArtifactsCache.getOrDownload(version, hydraVersion, listener).asJava))
+
 }

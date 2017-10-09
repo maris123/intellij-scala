@@ -2,7 +2,7 @@ package org.jetbrains.plugins.scala.caches
 
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
-
+import org.jetbrains.plugins.scala.project.template.FileExt
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.plugins.scala.project.template.Downloader
 
@@ -10,42 +10,46 @@ import org.jetbrains.plugins.scala.project.template.Downloader
   * @author Maris Alexandru
   */
 object HydraArtifactsCache {
-  private val LOG = Logger.getInstance(this.getClass)
+  private val Log = Logger.getInstance(this.getClass)
   private val cache = new ConcurrentHashMap[(String, String), Seq[String]]()
   private val SplitRegex = "\\* Attributed\\(|\\)".r
   private val ArtifactsRegex = "\\* Attributed\\(.*\\)".r
   private val GroupId = "com.triplequote"
-  private val PathSeparator = File.separator
 
   def getOrDownload(scalaVersion: String, hydraVersion: String, listener: (String) => Unit): Seq[String] = {
     val artifacts = cache.getOrDefault((scalaVersion, hydraVersion), Seq.empty)
 
     if (artifacts.isEmpty) {
-      val stringBuilder = new StringBuilder
+      val sbtBufferedOutput = new StringBuilder
       Downloader.downloadHydra(s"${scalaVersion}_$hydraVersion", (text: String) => {
-        stringBuilder.append(text)
+        sbtBufferedOutput.append(text)
         listener(text)
       })
-      LOG.info(stringBuilder.toString())
-      cacheArtifacts(stringBuilder.toString, scalaVersion, hydraVersion)
+      Log.info(sbtBufferedOutput.toString())
+      cacheArtifacts(sbtBufferedOutput.toString, scalaVersion, hydraVersion)
     } else {
       artifacts
     }
   }
 
   private def cacheArtifacts(artifacts: String, scalaVersion: String, hydraVersion: String) = {
+    def findDownloadFolder(path: String) = path.split(GroupId).headOption
+
     val paths = artifacts.split("\n").filter(s => ArtifactsRegex.findFirstIn(s).nonEmpty).map(s => SplitRegex.split(s)(1))
-    val hydraBridge = s"${findDownloadFolder(paths.head)}$GroupId" / "hydra-bridge_1_0" / "srcs" / s"hydra-bridge_1_0-$hydraVersion-sources.jar"
-    val artifactPaths = hydraBridge +: paths
-    cache.put((scalaVersion, hydraVersion), artifactPaths)
-    artifactPaths
-  }
+    val maybeHydraBridge = for {
+      path  <- paths.headOption
+      downloadFolder <- findDownloadFolder(path)
+    } yield new File(s"$downloadFolder$GroupId") / "hydra-bridge_1_0" / "srcs" / s"hydra-bridge_1_0-$hydraVersion-sources.jar"
 
-  private def findDownloadFolder(path: String) = {
-    path.split(GroupId).head
-  }
-
-  private implicit class Path(path: String) {
-    def / (otherPath: String) = s"$path$PathSeparator$otherPath"
+    maybeHydraBridge match {
+      case None =>
+        Log.warn(s"Hydra bridge $hydraVersion path couldn't be created from $artifacts")
+        cache.put((scalaVersion, hydraVersion), paths)
+        paths
+      case Some(hydraBridge) =>
+        val artifactPaths = hydraBridge.getAbsolutePath +: paths
+        cache.put((scalaVersion, hydraVersion), artifactPaths)
+        artifactPaths
+    }
   }
 }
