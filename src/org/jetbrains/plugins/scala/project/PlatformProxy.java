@@ -7,6 +7,5 @@ package org.jetbrains.plugins.scala.project;
 // Proxy enumeration for library property serialization
 public enum PlatformProxy {
   Scala,
-  Dotty,
-  Hydra
+  Dotty
 }

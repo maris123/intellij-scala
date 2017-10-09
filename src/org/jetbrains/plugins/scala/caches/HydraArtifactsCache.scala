@@ -28,7 +28,7 @@ object HydraArtifactsCache {
 
     if (artifacts.isEmpty) {
       val stringBuilder = new StringBuilder
-      Downloader.downloadScala(Platform.Hydra, s"${scalaVersion}_$hydraVersion", (text: String) => {
+      Downloader.downloadHydra(s"${scalaVersion}_$hydraVersion", (text: String) => {
         stringBuilder.append(text)
         listener(text)
       })

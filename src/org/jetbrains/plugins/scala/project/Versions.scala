@@ -3,10 +3,10 @@ package org.jetbrains.plugins.scala.project
 import com.intellij.util.net.HttpConfigurable
 import org.jetbrains.plugins.scala.buildinfo.BuildInfo
 import org.jetbrains.plugins.scala.compiler.HydraCredentialsManager
-import org.jetbrains.plugins.scala.project.Platform.{Dotty, Hydra, Scala}
+import org.jetbrains.plugins.scala.project.Platform.{Dotty, Scala}
 
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 import scala.util.matching.Regex
 
 /**
@@ -22,8 +22,9 @@ object Versions  {
   def loadScalaVersions(platform: Platform): Array[String] = platform match {
     case Scala => loadVersionsOf(Entity.Scala)
     case Dotty => loadVersionsOf(Entity.Dotty)
-    case Hydra => loadVersionsOf(Entity.Hydra)
   }
+
+  def loadHydraVersions(): Array[String] = loadVersionsOf(Entity.Hydra)
 
   def loadSbtVersions: Array[String] = loadVersionsOf(Entity.Sbt013, Entity.Sbt1)
 

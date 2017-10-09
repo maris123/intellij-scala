@@ -13,10 +13,18 @@ import org.jetbrains.plugins.scala.project.Platform
   */
 object Downloader {
   def downloadScala(platform: Platform, version: String, listener: String => Unit): Unit = {
+    createTempSbtProject(platform, version, listener, sbtCommandsFor)
+  }
+
+  def downloadHydra(version: String, listener: String => Unit): Unit = {
+    createTempSbtProject(Platform.Scala, version, listener, sbtCommandsForHydra)
+  }
+
+  private def createTempSbtProject(platform: Platform, version: String, listener: String => Unit, sbtCommands: (Platform, String) => Seq[String]): Unit = {
     val buffer = new StringBuffer()
 
     usingTempFile("sbt-commands") { file =>
-      writeLinesTo(file, sbtCommandsFor(platform, version): _*)
+      writeLinesTo(file, sbtCommands(platform, version): _*)
       usingTempDirectory("sbt-project") { directory =>
         val process = Runtime.getRuntime.exec(osCommandsFor(file).toArray, null, directory)
 
@@ -62,15 +70,15 @@ object Downloader {
     case Platform.Dotty => Seq(
       s"""set libraryDependencies := Seq("ch.epfl.lamp" % "dotty_2.11" % "$version" % "scala-tool")""",
       "updateClassifiers")
-
-    case Platform.Hydra => Seq(
-      s"""set scalaVersion := "${version.split("_")(0)}"""",
-      s"""set credentials := Seq(Credentials("Artifactory Realm", "repo.triplequote.com", "${HydraCredentialsManager.getLogin}", "${HydraCredentialsManager.getPlainPassword}"))""",
-      s"""set resolvers := Seq(Resolver.url("Triplequote Plugins Ivy Releases", url("https://repo.triplequote.com/artifactory/ivy-releases/"))(Resolver.ivyStylePatterns), Resolver.url("Triplequote sbt-plugin-relseases", url("https://repo.triplequote.com/artifactory/sbt-plugins-release/"))(Resolver.ivyStylePatterns),  "Triplequote Plugins Releases" at "https://repo.triplequote.com/artifactory/libs-release-local/")""",
-      s"""set libraryDependencies := Seq("com.triplequote" % "hydra_${version.split("_")(0)}" % "${version.split("_")(1)}", ("com.triplequote" % "hydra-bridge_1_0" % "${version.split("_")(1)}").sources())""",
-      "updateClassifiers",
-      "show dependencyClasspath")
   }
+
+  private def sbtCommandsForHydra(platform: Platform, version: String) = Seq(
+    s"""set scalaVersion := "${version.split("_")(0)}"""",
+    s"""set credentials := Seq(Credentials("Artifactory Realm", "repo.triplequote.com", "${HydraCredentialsManager.getLogin}", "${HydraCredentialsManager.getPlainPassword}"))""",
+    s"""set resolvers := Seq(Resolver.url("Triplequote Plugins Ivy Releases", url("https://repo.triplequote.com/artifactory/ivy-releases/"))(Resolver.ivyStylePatterns), Resolver.url("Triplequote sbt-plugin-relseases", url("https://repo.triplequote.com/artifactory/sbt-plugins-release/"))(Resolver.ivyStylePatterns),  "Triplequote Plugins Releases" at "https://repo.triplequote.com/artifactory/libs-release-local/")""",
+    s"""set libraryDependencies := Seq("com.triplequote" % "hydra_${version.split("_")(0)}" % "${version.split("_")(1)}", ("com.triplequote" % "hydra-bridge_1_0" % "${version.split("_")(1)}").sources())""",
+    "updateClassifiers",
+    "show dependencyClasspath")
 }
 
 class DownloadException(message: String) extends Exception(message)

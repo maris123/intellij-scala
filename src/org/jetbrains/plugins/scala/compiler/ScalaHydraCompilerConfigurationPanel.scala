@@ -31,7 +31,7 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
     override def focusLost(e: FocusEvent) = if (getUsername.nonEmpty && getPassword.nonEmpty &&
       (HydraCredentialsManager.getLogin != getUsername || HydraCredentialsManager.getPlainPassword != getPassword)) {
       HydraCredentialsManager.setCredentials(getUsername, getPassword)
-      hydraVersionComboBox.setItems(Versions.loadScalaVersions(Platform.Hydra))
+      hydraVersionComboBox.setItems(Versions.loadHydraVersions)
     }
   }
 
@@ -39,7 +39,7 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   userTextField.getDocument.addDocumentListener(documentAdapter)
   passwordTextField.getDocument.addDocumentListener(documentAdapter)
   passwordTextField.addFocusListener(focusListener)
-  hydraVersionComboBox.setItems(Versions.loadScalaVersions(Platform.Hydra))
+  hydraVersionComboBox.setItems(Versions.loadHydraVersions)
   downloadButton.addActionListener((_: ActionEvent) => onDownload())
 
   def selectedVersion: String = hydraVersionComboBox.getSelectedItem.asInstanceOf[String]
