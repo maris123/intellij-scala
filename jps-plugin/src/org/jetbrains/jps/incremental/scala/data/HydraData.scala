@@ -26,10 +26,19 @@ class HydraData(project: JpsProject, files: List[File], scalaVersion: String) {
 
 object HydraData {
   val HydraBridgeName = "hydra-bridge_1_0"
+  val HydraBridgeNameRegex = s".*${HydraData.HydraBridgeName}-(\\d+\\.\\d+\\.\\d+)-sources.jar".r
 
   def apply(project: JpsProject, scalaVersion: String): HydraData = {
     val files = SettingsManager.getHydraSettings(project).getArtifactPaths.getOrDefault(scalaVersion, List[String]().asJava).asScala.map(new File(_)).toList
 
     new HydraData(project, files, scalaVersion)
+  }
+
+  def getHydraVersionFromBridge(bridgeFile: File): Option[String] = {
+    val fileName = bridgeFile.getName
+    fileName match {
+      case HydraBridgeNameRegex(hydraVersion) => Some(hydraVersion)
+      case _ => None
+    }
   }
 }

@@ -98,6 +98,7 @@ object CompilerFactoryImpl {
 
     val scalaVersion = scalaInstance.actualVersion
     def getSourceJars = if (isBefore_2_11(scalaVersion)) sourceJars._2_10 else sourceJars._2_11
+
     val sourceJar =
       if (scalaVersion.contains("hydra")) {
         val hydraBridge = scalaInstance.otherJars().find(_.getName.contains(HydraData.HydraBridgeName))
@@ -108,7 +109,12 @@ object CompilerFactoryImpl {
       }
       else getSourceJars
 
-    val interfaceId = "compiler-interface-" + scalaVersion + "-" + javaClassVersion
+    def getHydraVersion = HydraData.getHydraVersionFromBridge(sourceJar) match {
+      case Some(ver) => s"-$ver"
+      case _ => ""
+    }
+
+    val interfaceId = "compiler-interface-" + scalaVersion + getHydraVersion + "-" + javaClassVersion
     val targetJar = new File(home, interfaceId + ".jar")
 
     if (!targetJar.exists) {
