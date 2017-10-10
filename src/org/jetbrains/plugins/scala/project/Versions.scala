@@ -53,11 +53,10 @@ object Versions  {
   }
 
   private def loadLinesFrom(url: String): Try[Seq[String]] = {
-    val urlConnection = HttpConfigurable.getInstance().openHttpConnection(url)
-    if(url.contains(Entity.Hydra.url))
-      urlConnection.setRequestProperty("Authorization", "Basic " + HydraCredentialsManager.getBasicAuthEncoding())
-    Try(urlConnection).map { connection =>
+    Try(HttpConfigurable.getInstance().openHttpConnection(url)).map { connection =>
       try {
+        if(url.contains(Entity.Hydra.url))
+          connection.setRequestProperty("Authorization", "Basic " + HydraCredentialsManager.getBasicAuthEncoding())
         Source.fromInputStream(connection.getInputStream).getLines().toVector
       } finally {
         connection.disconnect()
