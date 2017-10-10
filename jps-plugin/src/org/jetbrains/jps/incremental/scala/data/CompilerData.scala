@@ -10,6 +10,7 @@ import org.jetbrains.jps.incremental.scala._
 import org.jetbrains.jps.incremental.scala.model.{IncrementalityType, LibrarySettings}
 import org.jetbrains.jps.model.java.JpsJavaSdkType
 import org.jetbrains.jps.model.module.JpsModule
+import com.intellij.openapi.diagnostic.{Logger => JpsLogger}
 
 import scala.collection.JavaConverters._
 
@@ -19,6 +20,8 @@ import scala.collection.JavaConverters._
 case class CompilerData(compilerJars: Option[CompilerJars], javaHome: Option[File], incrementalType: IncrementalityType)
 
 object CompilerData {
+  private val Log: JpsLogger = JpsLogger.getInstance(CompilationData.getClass.getName)
+
   def from(context: CompileContext, chunk: ModuleChunk): Either[String, CompilerData] = {
     val project = context.getProjectDescriptor
     val target = chunk.representativeTarget
@@ -39,6 +42,7 @@ object CompilerData {
             val extraJars = if(hydraOtherJars.nonEmpty) hydraOtherJars else jars.extra
             CompilerJars(jars.library, hydraData.getCompilerJar.getOrElse(jars.compiler), extraJars)
           } else jars
+        Log.info("Compiler jars: " + compileJars.files.map(_.getName))
         val absentJars = compileJars.files.filter(!_.exists)
         Either.cond(absentJars.isEmpty,
           Some(compileJars),
@@ -97,7 +101,8 @@ object CompilerData {
 
   def compilerVersion(module: JpsModule): Option[String] = compilerJarsIn(module) match {
     case Right(CompilerJars(_, compiler, _)) => version(compiler)
-    case _ => None
+    case Left(error) => Log.error(error)
+      None
   }
 
   private def needNoBootCp(module: JpsModule): Boolean = {

@@ -25,7 +25,7 @@ object HydraArtifactsCache {
         sbtBufferedOutput.append(text)
         listener(text)
       })
-      Log.info(sbtBufferedOutput.toString())
+      Log.info("Temp SBT project output: " + sbtBufferedOutput.toString())
       cacheArtifacts(sbtBufferedOutput.toString, scalaVersion, hydraVersion)
     } else {
       artifacts
