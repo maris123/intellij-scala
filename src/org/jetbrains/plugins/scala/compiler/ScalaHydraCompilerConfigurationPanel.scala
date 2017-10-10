@@ -17,13 +17,10 @@ import scala.util.{Failure, Success}
   * @author Maris Alexandru
   */
 class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraCompilerSettings) extends HydraCompilerConfigurationPanel {
-  private val UnknownVersion = "unknown"
 
   val documentAdapter = new DocumentAdapter {
-      override def textChanged(documentEvent: DocumentEvent): Unit =
-        if (getUsername.nonEmpty && getPassword.nonEmpty) downloadButton.setEnabled(true)
-        else downloadButton.setEnabled(false)
-    }
+    override def textChanged(documentEvent: DocumentEvent): Unit = downloadButton.setEnabled(getUsername.nonEmpty && getPassword.nonEmpty)
+  }
 
   val focusListener = new FocusListener {
     override def focusGained(e: FocusEvent): Unit = {}
@@ -42,18 +39,18 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   hydraVersionComboBox.setItems(Versions.loadHydraVersions)
   downloadButton.addActionListener((_: ActionEvent) => onDownload())
 
-  def selectedVersion: String = hydraVersionComboBox.getSelectedItem.asInstanceOf[String]
+  def selectedVersion: String = hydraVersionComboBox.getSelectedItem.toString
 
-  def onDownload() = {
-    downloadVersionWithProgress(project.scalaModules.map(module => module.sdk.compilerVersion.getOrElse(UnknownVersion)), selectedVersion)
+  def onDownload(): Unit = {
+    downloadVersionWithProgress(project.scalaModules.map(module => module.sdk.compilerVersion), selectedVersion)
     settings.hydraVersion = selectedVersion
   }
 
-  private def downloadVersionWithProgress(scalaVersions: Seq[String], hydraVersion: String): Unit = {
+  private def downloadVersionWithProgress(scalaVersions: Seq[Option[String]], hydraVersion: String): Unit = {
     val filteredScalaVersions = for {
       rawVersion <- scalaVersions.distinct
-      if rawVersion != UnknownVersion && rawVersion != "2.12.0"
-      version = Version(rawVersion)
+      if rawVersion.nonEmpty && rawVersion != "2.12.0"
+      version = Version(rawVersion.get)
       if version >= Version("2.11")
       filteredVersion = version.presentation
     } yield filteredVersion
@@ -74,7 +71,7 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
     }
   }
 
-  private def downloadVersion(scalaVersions: Seq[String], hydraVersion: String):(((String) => Unit) => Unit) =
+  private def downloadVersion(scalaVersions: Seq[String], hydraVersion: String): (((String) => Unit) => Unit) =
     (listener: (String) => Unit) => scalaVersions.foreach(version =>
       settings.artifactPaths.put(version,HydraArtifactsCache.getOrDownload(version, hydraVersion, listener).asJava))
 
