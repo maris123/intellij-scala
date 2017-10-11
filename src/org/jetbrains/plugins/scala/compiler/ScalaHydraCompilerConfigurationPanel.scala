@@ -42,15 +42,19 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   def selectedVersion: String = hydraVersionComboBox.getSelectedItem.toString
 
   def onDownload(): Unit = {
-    downloadVersionWithProgress(project.scalaModules.map(module => module.sdk.compilerVersion), selectedVersion)
+    val scalaVersions = for {
+      module <- project.scalaModules
+      scalaVersion <- module.sdk.compilerVersion
+    } yield scalaVersion
+    downloadVersionWithProgress(scalaVersions, selectedVersion)
     settings.hydraVersion = selectedVersion
   }
 
-  private def downloadVersionWithProgress(scalaVersions: Seq[Option[String]], hydraVersion: String): Unit = {
+  private def downloadVersionWithProgress(scalaVersions: Seq[String], hydraVersion: String): Unit = {
     val filteredScalaVersions = for {
       rawVersion <- scalaVersions.distinct
-      if rawVersion.nonEmpty && rawVersion != "2.12.0"
-      version = Version(rawVersion.get)
+      if rawVersion != "2.12.0"
+      version = Version(rawVersion)
       if version >= Version("2.11")
       filteredVersion = version.presentation
     } yield filteredVersion
