@@ -75,8 +75,7 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
     }
   }
 
-  private def downloadVersion(scalaVersions: Seq[String], hydraVersion: String): (((String) => Unit) => Unit) =
-    (listener: (String) => Unit) => scalaVersions.foreach(version =>
+  private def downloadVersion(scalaVersions: Seq[String], hydraVersion: String): (String => Unit) => Unit =
+    (listener: String => Unit) => scalaVersions.foreach(version =>
       settings.artifactPaths.put(version,HydraArtifactsCache.getOrDownload(version, hydraVersion, listener).asJava))
-
 }
