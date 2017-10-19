@@ -1,27 +1,14 @@
 package org.jetbrains.plugins.scala.compiler
 
-import java.io.File
+import java.nio.file.Paths
 
-import com.intellij.openapi.components._
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.scala.compiler.SourcePartitioner.Auto
-
-import scala.beans.BeanProperty
 
 /**
   * @author Maris Alexandru
   */
-@State(
-        name = "HydraSettings",
-        storages = Array(new Storage("hydra.xml"))
-)
-class HydraCompilerSettings(project: Project) extends PersistentStateComponent[HydraCompilerSettingsState] {
-
-  private val ProjectRoot: String = getProjectRootPath
-
-  var isHydraEnabled: Boolean = false
-
-  var hydraVersion: String = "0.9.5"
+class HydraCompilerSettings(project: Project) {
 
   var noOfCores: String = Math.ceil(Runtime.getRuntime.availableProcessors()/2D).toInt.toString
 
@@ -29,52 +16,7 @@ class HydraCompilerSettings(project: Project) extends PersistentStateComponent[H
 
   var sourcePartitioner: String = Auto.value
 
-  override def getState: HydraCompilerSettingsState = {
-    val state = new HydraCompilerSettingsState()
-    state.hydraVersion = hydraVersion
-    state.noOfCores = noOfCores
-    state.isHydraEnabled = isHydraEnabled
-    state.hydraStorePath = hydraStorePath
-    state.sourcePartitioner = sourcePartitioner
-    state.projectRoot = ProjectRoot
-    state
-  }
-
-  override def loadState(state: HydraCompilerSettingsState): Unit = {
-    isHydraEnabled = state.isHydraEnabled
-    hydraVersion = state.hydraVersion
-    noOfCores = state.noOfCores
-    hydraStorePath = state.hydraStorePath
-    sourcePartitioner = state.sourcePartitioner
-  }
-
-  def getDefaultHydraStorePath: String = ProjectRoot + File.separator + ".hydra"
-
-  private def getProjectRootPath: String = project.getBaseDir.getPresentableUrl
-}
-
-object HydraCompilerSettings {
-  def getInstance(project: Project): HydraCompilerSettings = ServiceManager.getService(project, classOf[HydraCompilerSettings])
-}
-
-class HydraCompilerSettingsState {
-  @BeanProperty
-  var isHydraEnabled: Boolean = false
-
-  @BeanProperty
-  var hydraVersion: String = ""
-
-  @BeanProperty
-  var noOfCores: String = ""
-
-  @BeanProperty
-  var hydraStorePath: String = ""
-
-  @BeanProperty
-  var sourcePartitioner: String = ""
-
-  @BeanProperty
-  var projectRoot: String = ""
+  private def getDefaultHydraStorePath = Paths.get(project.getBaseDir.getPresentableUrl, ".hydra").toString
 }
 
 object SourcePartitioner {
@@ -87,3 +29,4 @@ object SourcePartitioner {
 
   val values: Seq[SourcePartitioner] = Seq(Auto, Explicit, Plain, Package)
 }
+
