@@ -12,7 +12,7 @@ import org.jetbrains.plugins.scala.project.AbstractConfigurable
   * @author Maris Alexandru
   */
 class HydraCompilerConfigurable (project: Project) extends AbstractConfigurable("Hydra Compiler"){
-  private val settings = HydraCompilerSettings.getInstance(project)
+  private val settings = HydraCompilerConfiguration.getInstance(project)
   private val hydraGlobalSettings = HydraApplicationSettings.getInstance()
   private val form = new ScalaHydraCompilerConfigurationPanel(project, settings, hydraGlobalSettings)
 
@@ -22,9 +22,6 @@ class HydraCompilerConfigurable (project: Project) extends AbstractConfigurable(
     form.getUsername != HydraCredentialsManager.getLogin ||
     form.getPassword != HydraCredentialsManager.getPlainPassword ||
     form.selectedVersion != settings.hydraVersion ||
-    form.selectedNoOfCores != settings.noOfCores ||
-    form.selectedSourcePartitioner != settings.sourcePartitioner ||
-    form.getHydraStoreDirectory != settings.hydraStorePath ||
     form.getHydraRepository != hydraGlobalSettings.getHydraRepositoryUrl ||
     form.getHydraRepositoryRealm != hydraGlobalSettings.hydraRepositoryRealm
 
@@ -32,10 +29,7 @@ class HydraCompilerConfigurable (project: Project) extends AbstractConfigurable(
     form.setUsername(HydraCredentialsManager.getLogin)
     form.setPassword(HydraCredentialsManager.getPlainPassword)
     form.setIsHydraEnabled(settings.isHydraEnabled)
-    form.setSelectedNoOfCores(settings.noOfCores)
     form.setSelectedVersion(settings.hydraVersion)
-    form.setSelectedSourcePartitioner(settings.sourcePartitioner)
-    form.setHydraStoreDirectory(settings.hydraStorePath)
     form.setHydraRepository(hydraGlobalSettings.getHydraRepositoryUrl)
     form.setHydraRepositoryRealm(hydraGlobalSettings.hydraRepositoryRealm)
   }
@@ -44,9 +38,6 @@ class HydraCompilerConfigurable (project: Project) extends AbstractConfigurable(
     BuildManager.getInstance().clearState(project)
     settings.hydraVersion = form.selectedVersion
     settings.isHydraEnabled = form.isHydraEnabled
-    settings.noOfCores = form.selectedNoOfCores
-    settings.sourcePartitioner = form.selectedSourcePartitioner
-    settings.hydraStorePath = form.getHydraStoreDirectory
     hydraGlobalSettings.setHydraRepositopryUrl(form.getHydraRepository)
     hydraGlobalSettings.hydraRepositoryRealm = form.getHydraRepositoryRealm
     HydraCredentialsManager.setCredentials(form.getUsername, form.getPassword)

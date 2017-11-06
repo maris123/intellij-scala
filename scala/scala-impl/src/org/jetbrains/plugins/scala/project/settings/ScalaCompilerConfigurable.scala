@@ -8,12 +8,9 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.scala.project.AbstractConfigurable
 
 import scala.collection.JavaConverters._
-import scala.util.Random
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.Configurable.Composite
-import com.intellij.openapi.util.registry.Registry
-import org.jetbrains.plugins.hydra.compiler.{HydraCompilerConfigurable, HydraCompilerSettings}
-import org.jetbrains.plugins.scala.compiler.{ScalaCompileServerForm, ScalaCompileServerSettings}
+import org.jetbrains.plugins.hydra.compiler.{HydraCompilerConfigurable, HydraCompilerConfiguration}
 
 /**
  * @author Pavel Fatin
@@ -44,7 +41,7 @@ class ScalaCompilerConfigurable(project: Project, configuration: ScalaCompilerCo
   }
 
   override def getConfigurables(): Array[Configurable] = {
-    if (HydraCompilerSettings.getInstance(project).isHydraSettingsEnabled)
+    if (HydraCompilerConfiguration.getInstance(project).isHydraSettingsEnabled)
       Array(new HydraCompilerConfigurable(project))
     else
       Array()
