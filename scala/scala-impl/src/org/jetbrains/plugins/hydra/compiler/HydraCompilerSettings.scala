@@ -8,7 +8,7 @@ import org.jetbrains.plugins.hydra.compiler.SourcePartitioner.Auto
 /**
   * @author Maris Alexandru
   */
-class HydraCompilerSettings(project: Project) {
+class HydraCompilerSettings(projectRoot: String) {
 
   var noOfCores: String = Math.ceil(Runtime.getRuntime.availableProcessors()/2D).toInt.toString
 
@@ -16,7 +16,7 @@ class HydraCompilerSettings(project: Project) {
 
   var sourcePartitioner: String = Auto.value
 
-  def getDefaultHydraStorePath: String = Paths.get(HydraCompilerConfiguration.getInstance(project).getProjectRootPath, ".hydra", "idea").toString
+  def getDefaultHydraStorePath: String = Paths.get(projectRoot, ".hydra", "idea").toString
 }
 
 object SourcePartitioner {

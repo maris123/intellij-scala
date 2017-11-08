@@ -12,13 +12,13 @@ import java.util.List;
 public class HydraCompilerSettingsProfile {
   private String name;
   private List<String> moduleNames = new ArrayList<>();
-  private Project project;
+  private String projectRootPath;
   private HydraCompilerSettings settings;
 
-  public HydraCompilerSettingsProfile(String name, Project project) {
+  public HydraCompilerSettingsProfile(String name, String projectRootPath) {
     this.name = name;
-    this.project = project;
-    this.settings = new HydraCompilerSettings(project);
+    this.projectRootPath = projectRootPath;
+    this.settings = new HydraCompilerSettings(projectRootPath);
   }
 
   public String getName() {
@@ -29,7 +29,7 @@ public class HydraCompilerSettingsProfile {
     name = profile.getName();
     settings = profile.getSettings();
     moduleNames = new ArrayList<>(profile.getModuleNames());
-    project = profile.getProject();
+    projectRootPath = profile.getProjectRootPath();
   }
 
   public List<String> getModuleNames() {
@@ -52,9 +52,9 @@ public class HydraCompilerSettingsProfile {
     settings = settigns;
   }
 
-  public Project getProject() { return project; }
+  public String getProjectRootPath() { return projectRootPath; }
 
-  public void setProject(Project project) { this.project = project; }
+  public void setProject(String projectRootPath) { this.projectRootPath = projectRootPath; }
 
   @Override
   public String toString() {

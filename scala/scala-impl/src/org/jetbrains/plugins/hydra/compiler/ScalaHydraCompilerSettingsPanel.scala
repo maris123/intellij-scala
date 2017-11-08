@@ -27,7 +27,7 @@ class ScalaHydraCompilerSettingsPanel (project: Project) extends HydraCompilerSe
   })
 
   def getState: HydraCompilerSettings = {
-    val state = new HydraCompilerSettings(project)
+    val state = new HydraCompilerSettings(HydraCompilerConfiguration.getInstance(project).getProjectRootPath)
 
     state.noOfCores = selectedNoOfCores
     state.sourcePartitioner = selectedNoOfCores

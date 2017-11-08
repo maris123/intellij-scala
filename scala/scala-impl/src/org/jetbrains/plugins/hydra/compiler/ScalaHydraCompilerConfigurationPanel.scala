@@ -21,8 +21,6 @@ import scala.util.{Failure, Success, Try}
   */
 class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraCompilerConfiguration, hydraGlobalSettings: HydraApplicationSettings) extends HydraCompilerConfigurationPanel {
 
-  private val fileChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false)
-
   private val documentAdapter = new DocumentAdapter {
     override def textChanged(documentEvent: DocumentEvent): Unit =
       downloadButton.setEnabled(getUsername.nonEmpty && getPassword.nonEmpty && getHydraRepository.nonEmpty && getHydraRepositoryRealm.nonEmpty)
@@ -44,7 +42,8 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   downloadButton.addActionListener((_: ActionEvent) => onDownload())
   downloadVersionButton.addActionListener((_: ActionEvent) => onDownloadVersions())
 
-  profilesPanel.add(new HydraCompilerProfilePanel(project), BorderLayout.CENTER)
+  hydraProfilesPanel = new HydraCompilerProfilePanel(project);
+  profilesPanel.add(hydraProfilesPanel, BorderLayout.CENTER)
 
   def selectedVersion: String = hydraVersionComboBox.getSelectedItem.toString
 
@@ -62,6 +61,8 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
     case Success(url) => url.getHost
     case _ => ""
   }
+
+  def getHydraProfilesPanel: HydraCompilerProfilePanel = hydraProfilesPanel
 
   def onDownload(): Unit = {
     Try(new URL(hydraGlobalSettings.getHydraRepositoryUrl)) match {

@@ -50,7 +50,7 @@ public class HydraCompilerProfilePanel extends JPanel {
     Splitter splitter = new Splitter(false, 0.3f);
     add(splitter, BorderLayout.CENTER);
     myProject = project;
-    myDefaultProfile = new HydraCompilerSettingsProfile("Default", myProject);
+    myDefaultProfile = new HydraCompilerSettingsProfile("Default", myProject.getBaseDir().getPresentableUrl());
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       myAllModulesMap.put(module.getName(), module);
     }
@@ -160,7 +160,7 @@ public class HydraCompilerProfilePanel extends JPanel {
     myDefaultProfile.initFrom(defaultProfile);
     myModuleProfiles.clear();
     for (HydraCompilerSettingsProfile profile : moduleProfiles) {
-      HydraCompilerSettingsProfile copy = new HydraCompilerSettingsProfile("", myProject);
+      HydraCompilerSettingsProfile copy = new HydraCompilerSettingsProfile("", myProject.getBaseDir().getPresentableUrl());
       copy.initFrom(profile);
       myModuleProfiles.add(copy);
     }
@@ -242,7 +242,7 @@ public class HydraCompilerProfilePanel extends JPanel {
                 }
               });
       if (newProfileName != null) {
-        final HydraCompilerSettingsProfile profile = new HydraCompilerSettingsProfile(newProfileName, myProject);
+        final HydraCompilerSettingsProfile profile = new HydraCompilerSettingsProfile(newProfileName, myProject.getBaseDir().getPresentableUrl());
         myModuleProfiles.add(profile);
         ((DataSynchronizable)getRoot()).sync();
         final DefaultMutableTreeNode object = TreeUtil.findNodeWithObject((DefaultMutableTreeNode)getRoot(), profile);

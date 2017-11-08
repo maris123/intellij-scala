@@ -23,6 +23,10 @@ class HydraCompilerConfiguration(project: Project) extends PersistentStateCompon
 
   var hydraVersion: String = ""
 
+  var defaultProfile: HydraCompilerSettingsProfile = new HydraCompilerSettingsProfile("Default", getProjectRootPath)
+
+  var customProfiles: Seq[HydraCompilerSettingsProfile] = Seq.empty
+
   override def getState: HydraCompilerSettingsState = {
     val state = new HydraCompilerSettingsState()
     state.hydraVersion = hydraVersion
