@@ -1,5 +1,6 @@
 package org.jetbrains.plugins.hydra.compiler
 
+import java.awt.BorderLayout
 import java.awt.event.ActionEvent
 import java.net.URL
 import javax.swing.SwingUtilities
@@ -19,7 +20,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * @author Maris Alexandru
   */
-class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraCompilerSettings, hydraGlobalSettings: HydraApplicationSettings) extends HydraCompilerConfigurationPanel {
+class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraCompilerConfiguration, hydraGlobalSettings: HydraApplicationSettings) extends HydraCompilerConfigurationPanel {
 
   private val documentAdapter = new DocumentAdapter {
     override def textChanged(documentEvent: DocumentEvent): Unit =
@@ -45,16 +46,8 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   downloadButton.addActionListener((_: ActionEvent) => onDownload())
   checkConnectionButton.addActionListener((_: ActionEvent) => onCheck())
 
-  noOfCoresComboBox.setItems(Array.range(1, Runtime.getRuntime.availableProcessors() + 1).map(_.toString).sortWith(_ > _))
-  sourcePartitionerComboBox.setItems(SourcePartitioner.values.map(_.value).toArray)
-
-  def selectedNoOfCores: String = noOfCoresComboBox.getSelectedItem.toString
-
-  def setSelectedNoOfCores(numberOfCores: String): Unit = noOfCoresComboBox.setSelectedItem(numberOfCores)
-
-  def selectedSourcePartitioner: String = sourcePartitionerComboBox.getSelectedItem.toString
-
-  def setSelectedSourcePartitioner(sourcePartitioner: String): Unit = sourcePartitionerComboBox.setSelectedItem(sourcePartitioner)
+  hydraProfilesPanel = new HydraCompilerProfilePanel(project)
+  profilesPanel.add(hydraProfilesPanel, BorderLayout.CENTER)
 
   def getHydraRepository: String = hydraRepository.getText
 
@@ -72,6 +65,8 @@ class ScalaHydraCompilerConfigurationPanel(project: Project, settings: HydraComp
   def getHydraVersion: String = versionTextField.getText
 
   def setHydraVersion(version: String) = versionTextField.setText(version)
+
+  def getHydraProfilesPanel: HydraCompilerProfilePanel = hydraProfilesPanel
 
   def onDownload(): Unit = {
     Try(new URL(hydraGlobalSettings.getHydraRepositoryUrl)) match {

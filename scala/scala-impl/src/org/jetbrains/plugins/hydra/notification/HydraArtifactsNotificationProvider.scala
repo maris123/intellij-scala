@@ -5,7 +5,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.ui.{EditorNotificationPanel, EditorNotifications}
 import org.jetbrains.plugins.hydra.HydraVersions
-import org.jetbrains.plugins.hydra.compiler.{HydraCompilerSettings, HydraCompilerSettingsManager}
+import org.jetbrains.plugins.hydra.compiler.{HydraCompilerConfiguration, HydraCompilerSettingsManager}
 import org.jetbrains.plugins.hydra.settings.HydraApplicationSettings
 import org.jetbrains.plugins.scala.project.notification.AbstractNotificationProvider
 import org.jetbrains.plugins.hydra.notification.HydraArtifactsNotificationProvider._
@@ -20,7 +20,7 @@ class HydraArtifactsNotificationProvider(project: Project, notifications: Editor
 
   override protected def hasDeveloperKit(module: Module): Boolean = {
     val downloadedScalaVersions = HydraApplicationSettings.getInstance().getDownloadedScalaVersions
-    val hydraSettings = HydraCompilerSettings.getInstance(project)
+    val hydraSettings = HydraCompilerConfiguration.getInstance(project)
     val scalaVersions = HydraVersions.getSupportedScalaVersions(project)
 
     if(hydraSettings.isHydraEnabled) {

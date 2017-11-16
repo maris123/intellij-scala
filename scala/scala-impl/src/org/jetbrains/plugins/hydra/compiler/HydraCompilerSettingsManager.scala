@@ -13,7 +13,7 @@ object HydraCompilerSettingsManager {
   def showHydraCompileSettingsDialog(project: Project): Unit = ShowSettingsUtil.getInstance().showSettingsDialog(project, "Hydra Compiler")
 
   def getHydraLogJvmParameter(project: Project): String = {
-    val settings = HydraCompilerSettings.getInstance(project)
+    val settings = HydraCompilerConfiguration.getInstance(project)
     if (settings.isHydraEnabled)
       s"-Dhydra.logFile=${settings.hydraLogLocation}"
     else
@@ -22,7 +22,7 @@ object HydraCompilerSettingsManager {
 
   def setHydraLogSystemProperty(project: Project): Unit = {
     if (System.getProperty(HydraLogKey) == null) {
-      val settings = HydraCompilerSettings.getInstance(project)
+      val settings = HydraCompilerConfiguration.getInstance(project)
       System.setProperty(HydraLogKey, settings.hydraLogLocation)
     }
   }

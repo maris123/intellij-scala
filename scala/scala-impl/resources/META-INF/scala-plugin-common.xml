@@ -425,8 +425,8 @@
         <applicationService serviceInterface="org.jetbrains.plugins.hydra.settings.HydraApplicationSettings"
                             serviceImplementation="org.jetbrains.plugins.hydra.settings.HydraApplicationSettings"/>
 
-        <projectService serviceInterface="org.jetbrains.plugins.hydra.compiler.HydraCompilerSettings"
-                        serviceImplementation="org.jetbrains.plugins.hydra.compiler.HydraCompilerSettings"/>
+        <projectService serviceInterface="org.jetbrains.plugins.hydra.compiler.HydraCompilerConfiguration"
+                        serviceImplementation="org.jetbrains.plugins.hydra.compiler.HydraCompilerConfiguration"/>
 
         <projectService serviceInterface="org.jetbrains.plugins.scala.lang.scaladoc.generate.ScaladocSettings"
                         serviceImplementation="org.jetbrains.plugins.scala.lang.scaladoc.generate.ScaladocSettings"/>

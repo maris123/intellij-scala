@@ -7,14 +7,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotifications
 import org.jetbrains.plugins.hydra.settings.HydraApplicationSettings
 import org.jetbrains.plugins.scala.project.AbstractConfigurable
+import scala.collection.JavaConverters._
 
 /**
   * @author Maris Alexandru
   */
 class HydraCompilerConfigurable (project: Project) extends AbstractConfigurable("Hydra Compiler"){
-  private val settings = HydraCompilerSettings.getInstance(project)
+  private val settings = HydraCompilerConfiguration.getInstance(project)
   private val hydraGlobalSettings = HydraApplicationSettings.getInstance()
   private val form = new ScalaHydraCompilerConfigurationPanel(project, settings, hydraGlobalSettings)
+
+  private val profiles = form.getHydraProfilesPanel
 
   override def createComponent(): JPanel = form.getContentPanel
 
@@ -22,31 +25,30 @@ class HydraCompilerConfigurable (project: Project) extends AbstractConfigurable(
     form.getUsername != HydraCredentialsManager.getLogin ||
     form.getPassword != HydraCredentialsManager.getPlainPassword ||
     form.getHydraVersion != settings.hydraVersion ||
-    form.selectedNoOfCores != settings.noOfCores ||
-    form.selectedSourcePartitioner != settings.sourcePartitioner ||
     form.getHydraRepository != hydraGlobalSettings.getHydraRepositoryUrl ||
-    form.getHydraRepositoryRealm != hydraGlobalSettings.hydraRepositoryRealm
+    form.getHydraRepositoryRealm != hydraGlobalSettings.hydraRepositoryRealm ||
+    profiles.getDefaultProfile.getSettings.getState != settings.defaultProfile.getSettings.getState ||
+    !profiles.getModuleProfiles.asScala.corresponds(settings.customProfiles)(_.getSettings.getState == _.getSettings.getState)
 
   override def reset() {
     form.setUsername(HydraCredentialsManager.getLogin)
     form.setPassword(HydraCredentialsManager.getPlainPassword)
     form.setIsHydraEnabled(settings.isHydraEnabled)
-    form.setSelectedNoOfCores(settings.noOfCores)
     form.setHydraVersion(settings.hydraVersion)
-    form.setSelectedSourcePartitioner(settings.sourcePartitioner)
     form.setHydraRepository(hydraGlobalSettings.getHydraRepositoryUrl)
     form.setHydraRepositoryRealm(hydraGlobalSettings.hydraRepositoryRealm)
+    profiles.initProfiles(settings.defaultProfile, settings.customProfiles.asJava)
   }
 
   override def apply() {
-    BuildManager.getInstance().clearState(project)
+    settings.defaultProfile = profiles.getDefaultProfile
+    settings.customProfiles = profiles.getModuleProfiles.asScala
     settings.hydraVersion = form.getHydraVersion
     settings.isHydraEnabled = form.isHydraEnabled
-    settings.noOfCores = form.selectedNoOfCores
-    settings.sourcePartitioner = form.selectedSourcePartitioner
     hydraGlobalSettings.setHydraRepositopryUrl(form.getHydraRepository)
     hydraGlobalSettings.hydraRepositoryRealm = form.getHydraRepositoryRealm
     HydraCredentialsManager.setCredentials(form.getUsername, form.getPassword)
     EditorNotifications.updateAll()
+    BuildManager.getInstance().clearState(project)
   }
 }
