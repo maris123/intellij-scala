@@ -84,7 +84,7 @@ object CompilationData {
         !JavaBuilderUtil.isCompileJavaIncrementally(context) &&
           !JavaBuilderUtil.isForcedRecompilationAllJavaModules(context)
 
-      val hydraOptions = getHydraCompilerOptions(target, context, module, outputGroups)
+      val hydraOptions = getHydraCompilerOptions(target, context, module, chunk, outputGroups)
 
       CompilationData(canonicalSources, classpath, output, commonOptions ++ scalaOptions ++ hydraOptions, commonOptions ++ javaOptions,
         order, cacheFile, relevantOutputToCacheMap, outputGroups,
@@ -219,15 +219,17 @@ object CompilationData {
             "\nTIP: you can use Project Artifacts to combine compiled classes if needed.")
   }
 
-  private def getHydraCompilerOptions(target: ModuleBuildTarget, context: CompileContext, module: JpsModule, outputGroups: Seq[(File, File)]) = {
+  private def getHydraCompilerOptions(target: ModuleBuildTarget, context: CompileContext, module: JpsModule, chunk: ModuleChunk, outputGroups: Seq[(File, File)]): Seq[String] = {
     val hydraSettings = SettingsManager.getHydraSettings(context.getProjectDescriptor.getProject)
+    val hydraProfileCompilerSettings = hydraSettings.getCompilerSettings(chunk)
     val hydraGlobalSettings = SettingsManager.getGlobalHydraSettings(context.getProjectDescriptor.getModel.getGlobal)
     val scalaVersion = CompilerData.compilerVersion(module)
     val hydraConfigFolder = if (target.isTests) "test" else "main"
     val hydraOptions =
       if (hydraSettings.isHydraEnabled && scalaVersion.nonEmpty && hydraGlobalSettings.containsArtifactsFor(scalaVersion.get, hydraSettings.getHydraVersion))
-        Seq("-sourcepath", outputGroups.map(_._1).mkString(File.pathSeparator), "-cpus", hydraSettings.getNumberOfCores,
-          "-YsourcePartitioner:" + hydraSettings.getSourcePartitioner, "-YhydraStore", Paths.get(hydraSettings.getHydraStorePath, module.getName, hydraConfigFolder).toString,
+        hydraProfileCompilerSettings.getCompilerOptions.toSeq ++
+        Seq("-sourcepath", outputGroups.map(_._1).mkString(File.pathSeparator), "-cpus", "4",
+          "-YhydraStore", Paths.get(hydraSettings.getHydraStorePath, module.getName, hydraConfigFolder).toString,
           "-YpartitionFile", Paths.get(hydraSettings.getHydraStorePath, module.getName).toString, "-YrootDirectory", hydraSettings.getProjectRoot,
           "-YtimingsFile", Paths.get(hydraSettings.getHydraStorePath, "timings.csv").toString, "-YhydraTag", s"${module.getName}/${hydraConfigFolder}")
       else

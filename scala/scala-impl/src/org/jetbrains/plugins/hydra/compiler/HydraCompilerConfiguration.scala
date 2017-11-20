@@ -60,7 +60,12 @@ class HydraCompilerConfiguration(project: Project) extends PersistentStateCompon
   }
 
   override def loadState(configurationElement: Element): Unit = {
-    val state = XmlSerializer.deserialize(configurationElement, classOf[HydraCompilerConfigurationState])
+    val stateConfiguration = configurationElement.getChild("HydraCompilerConfigurationState")
+    var state = new HydraCompilerConfigurationState
+
+    if (stateConfiguration != null)
+      state = XmlSerializer.deserialize(stateConfiguration, classOf[HydraCompilerConfigurationState])
+
     setFromState(state)
 
     defaultProfile.setSettings(new HydraCompilerSettings(XmlSerializer.deserialize(configurationElement, classOf[HydraCompilerSettingsState])))

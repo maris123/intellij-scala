@@ -1,9 +1,12 @@
 package org.jetbrains.jps.incremental.scala;
 
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.incremental.scala.model.CompilerSettingsImpl;
 import org.jetbrains.jps.incremental.scala.model.GlobalHydraSettingsImpl;
+import org.jetbrains.jps.incremental.scala.model.HydraCompilerSettingsImpl;
 import org.jetbrains.jps.incremental.scala.model.HydraSettingsImpl;
 import org.jetbrains.jps.model.JpsGlobal;
 import org.jetbrains.jps.model.JpsProject;
@@ -12,7 +15,9 @@ import org.jetbrains.jps.model.serialization.JpsModelSerializerExtension;
 import org.jetbrains.jps.model.serialization.JpsProjectExtensionSerializer;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Maris Alexandru
@@ -38,14 +43,47 @@ public class HydraSerializerService extends JpsModelSerializerExtension {
 
     @Override
     public void loadExtension(@NotNull JpsProject jpsProject, @NotNull Element componentTag) {
-      HydraSettingsImpl.State state = XmlSerializer.deserialize(componentTag, HydraSettingsImpl.State.class);
-      HydraSettingsImpl settings = new HydraSettingsImpl(state == null ? new HydraSettingsImpl.State() : state);
+      HydraSettingsImpl.State state = getHydraSettingsState(componentTag);
+
+      HydraCompilerSettingsImpl defaultSettings = loadSettings(componentTag);
+
+      Map<String, String> moduleToProfile = new HashMap<String, String>();
+      Map<String, HydraCompilerSettingsImpl> profileToSettings = new HashMap<String, HydraCompilerSettingsImpl>();
+
+      for (Element profileElement : componentTag.getChildren("profile")) {
+        String profile = profileElement.getAttributeValue("name");
+        HydraCompilerSettingsImpl settings = loadSettings(profileElement);
+        profileToSettings.put(profile, settings);
+
+        List<String> modules = StringUtil.split(profileElement.getAttributeValue("modules"), ",");
+        for (String module : modules) {
+          moduleToProfile.put(module, profile);
+        }
+      }
+
+      HydraSettingsImpl settings = new HydraSettingsImpl(state == null ? new HydraSettingsImpl.State() : state, defaultSettings, profileToSettings, moduleToProfile);
       SettingsManager.setHydraSettings(jpsProject, settings);
     }
 
     @Override
     public void saveExtension(@NotNull JpsProject jpsProject, @NotNull Element componentTag) {
       // do nothing
+    }
+
+    private static HydraCompilerSettingsImpl loadSettings(Element componentTag) {
+      HydraCompilerSettingsImpl.State state = XmlSerializer.deserialize(componentTag, HydraCompilerSettingsImpl.State.class);
+      return new HydraCompilerSettingsImpl(state == null ? new HydraCompilerSettingsImpl.State() : state);
+    }
+
+    private HydraSettingsImpl.State getHydraSettingsState(Element componentTag) {
+      Element stateConfiguration = componentTag.getChild("HydraCompilerConfigurationState");
+      HydraSettingsImpl.State state = new HydraSettingsImpl.State();
+
+      if (stateConfiguration != null) {
+        state = XmlSerializer.deserialize(stateConfiguration, HydraSettingsImpl.State.class);
+      }
+
+      return state;
     }
   }
 
