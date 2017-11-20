@@ -228,7 +228,7 @@ object CompilationData {
     val hydraOptions =
       if (hydraSettings.isHydraEnabled && scalaVersion.nonEmpty && hydraGlobalSettings.containsArtifactsFor(scalaVersion.get, hydraSettings.getHydraVersion))
         hydraProfileCompilerSettings.getCompilerOptions.toSeq ++
-        Seq("-sourcepath", outputGroups.map(_._1).mkString(File.pathSeparator), "-cpus", "4",
+        Seq("-sourcepath", outputGroups.map(_._1).mkString(File.pathSeparator),
           "-YhydraStore", Paths.get(hydraSettings.getHydraStorePath, module.getName, hydraConfigFolder).toString,
           "-YpartitionFile", Paths.get(hydraSettings.getHydraStorePath, module.getName).toString, "-YrootDirectory", hydraSettings.getProjectRoot,
           "-YtimingsFile", Paths.get(hydraSettings.getHydraStorePath, "timings.csv").toString, "-YhydraTag", s"${module.getName}/${hydraConfigFolder}")
